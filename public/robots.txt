@@ -1,0 +1,24 @@
+User-agent: *
+Disallow: /admin
+
+User-agent: Yeti
+Disallow: /admin
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+
+# TODO: 실제 배포 도메인으로 교체
+Sitemap: https://www.example.com/sitemap.xml
