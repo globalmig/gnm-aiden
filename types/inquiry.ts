@@ -4,7 +4,17 @@ export interface InquiryReply {
     created_at: string;
 }
 
-export interface Inquiry {
+// 랜딩페이지 리드 전용 필드. source가 "main"인 문의는 전부 null이다.
+export interface LandingLeadFields {
+    category: string | null;
+    bundle_discount_opt_in: boolean | null;
+    agree_collection: boolean | null;
+    agree_third_party: boolean | null;
+    agree_age: boolean | null;
+    agree_marketing: boolean | null;
+}
+
+export interface Inquiry extends LandingLeadFields {
     id: string;
     source: "main" | "landing";
     name: string;
@@ -18,7 +28,7 @@ export interface Inquiry {
     created_at: string;
 }
 
-export interface InquiryInput {
+export interface InquiryInput extends Partial<LandingLeadFields> {
     source: "main" | "landing";
     name: string;
     phone: string;

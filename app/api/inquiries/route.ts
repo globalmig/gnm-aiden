@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     const name = String(body.name ?? "").trim();
     const phone = String(body.phone ?? "").trim();
     const content = String(body.content ?? "").trim();
+    const source = body.source === "landing" ? "landing" : "main";
 
     if (!name) {
         return NextResponse.json({ error: "이름을 입력해주세요." }, { status: 400 });
@@ -35,16 +36,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "문의 내용을 입력해주세요." }, { status: 400 });
     }
 
+    // 랜딩페이지 리드 전용 필드. source가 "main"이면 전부 null로 저장된다.
+    const landingFields =
+        source === "landing"
+            ? {
+                  category: body.category ? String(body.category) : null,
+                  bundle_discount_opt_in: !!body.bundle_discount_opt_in,
+                  agree_collection: !!body.agree_collection,
+                  agree_third_party: !!body.agree_third_party,
+                  agree_age: !!body.agree_age,
+                  agree_marketing: !!body.agree_marketing,
+              }
+            : {};
+
     const { data, error } = await supabaseAdmin
         .from("inquiries")
         .insert({
-            source: body.source === "landing" ? "landing" : "main",
+            source,
             name,
             phone,
             title: body.title || null,
             content,
             is_secret: !!body.is_secret,
             password_hash: body.password_hash || null,
+            ...landingFields,
         })
         .select()
         .single();
