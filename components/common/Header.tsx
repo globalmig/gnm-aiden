@@ -1,12 +1,10 @@
 "use client";
 
-import { COMPANY_INFO } from "@/datas/company";
 import { USER_CATEGORY } from "@/datas/categories";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function getTopLevelHref(key: string) {
-  if (key === "inquiry") return "/inquiry/write";
   return `/${key}`;
 }
 function getSubMenuHref(key: string, subUrl: string) {
@@ -14,63 +12,140 @@ function getSubMenuHref(key: string, subUrl: string) {
   return `/${subUrl}`;
 }
 
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+    </svg>
+  );
+}
+
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [openSubKey, setOpenSubKey] = useState<string | null>(null);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setOpenSubKey(null);
+      return;
+    }
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  const closeMenu = () => setIsOpen(false);
+
+  const hoveredCategory = hoveredKey ? USER_CATEGORY[hoveredKey] : null;
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-card">
-        <div className="mx-auto flex h-16 max-w-300 items-center justify-between px-5 pc:px-0">
-          <Link href="/" className="text-base font-bold text-title hover:text-primary">
-            {COMPANY_INFO.name}
+      <header
+        className="fixed w-full top-0 z-50 border-b border-gray-100 bg-white"
+        onMouseLeave={() => setHoveredKey(null)}
+      >
+        <div className="mx-auto flex h-16 max-w-300 items-center justify-between px-5 pc:h-20 pc:px-0">
+          <Link
+            href="/"
+            onClick={closeMenu}
+            className="shrink-0 text-xl font-extrabold tracking-tight text-primary pc:text-2xl"
+          >
+            지앤엠
           </Link>
 
-          <div className="pc:flex pc:items-center pc:gap-6">
+          <div className="flex items-center gap-2 pc:gap-8">
             <nav
-              className={`fixed top-0 right-0 z-50 h-dvh w-[75%] max-w-80 bg-white shadow-card duration-300 ease-in-out
-                pc:static pc:h-auto pc:w-auto pc:max-w-none pc:translate-x-0 pc:shadow-none
+              id="gnb"
+              className={`fixed inset-y-0 right-0 z-50 flex w-[80%] max-w-80 flex-col bg-white duration-300 ease-in-out
+                pc:static pc:w-auto pc:max-w-none pc:translate-x-0 pc:flex-row
                 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
             >
-              <div className="flex justify-end px-5 py-4 pc:hidden">
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 pc:hidden">
+                <span className="text-base font-semibold text-title">메뉴</span>
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="text-xl leading-none text-title"
+                  onClick={closeMenu}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-title active:bg-surface"
                   aria-label="메뉴 닫기"
                 >
-                  ✕
+                  <CloseIcon className="h-5 w-5" />
                 </button>
               </div>
 
-              <ul className="flex flex-col gap-1 px-5 pc:flex-row pc:items-center pc:gap-6 pc:px-0">
+              <ul className="flex flex-1 flex-col overflow-y-auto px-2 py-2 pc:flex-none pc:flex-row pc:items-center pc:gap-8 pc:overflow-visible pc:px-0 pc:py-0">
                 {Object.entries(USER_CATEGORY).map(([key, category]) => {
                   const hasSubMenu = !!category.categories?.length;
+                  const isSubOpen = openSubKey === key;
                   return (
-                    <li key={key} className="relative border-b border-gray-100 pc:border-0 last:border-0 group">
+                    <li
+                      key={key}
+                      className="border-b border-gray-50 pc:border-0"
+                      onMouseEnter={() => setHoveredKey(hasSubMenu ? key : null)}
+                    >
                       {hasSubMenu ? (
-                        <p className="cursor-default py-3 text-sm font-medium text-body pc:py-5">
-                          {category.title}
-                        </p>
+                        <div className="flex w-full items-center justify-between pc:w-auto pc:gap-1">
+                          <Link
+                            href={getTopLevelHref(key)}
+                            onClick={closeMenu}
+                            onFocus={() => setHoveredKey(key)}
+                            className="flex-1 px-3 py-3.5 text-left text-base font-medium text-body pc:flex-none pc:px-0 pc:py-6 pc:text-base pc:hover:text-primary"
+                          >
+                            {category.title}
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => setOpenSubKey(isSubOpen ? null : key)}
+                            aria-expanded={isSubOpen}
+                            aria-label={`${category.title} 하위메뉴 ${isSubOpen ? "닫기" : "열기"}`}
+                            className="flex h-11 w-11 shrink-0 items-center justify-center pc:hidden"
+                          >
+                            <ChevronIcon
+                              className={`h-4 w-4 rotate-90 text-muted transition-transform duration-200 ${
+                                isSubOpen ? "-rotate-90" : ""
+                              }`}
+                            />
+                          </button>
+                        </div>
                       ) : (
                         <Link
                           href={getTopLevelHref(key)}
-                          onClick={() => setIsOpen(false)}
-                          className="block py-3 text-sm font-medium text-body hover:text-primary pc:py-5"
+                          onClick={closeMenu}
+                          className="block px-3 py-3.5 text-base font-medium text-body hover:text-primary pc:px-0 pc:py-6 pc:text-base"
                         >
                           {category.title}
                         </Link>
                       )}
+
                       {hasSubMenu && (
                         <ul
-                          className="flex flex-col gap-0.5 pb-2
-                            pc:absolute pc:top-full pc:left-0 pc:z-50 pc:hidden pc:w-36 pc:rounded-lg pc:border pc:border-gray-100 pc:bg-white pc:py-1 pc:shadow-card pc:group-hover:block"
+                          className={`overflow-hidden text-base transition-[max-height] duration-200 ease-in-out pc:hidden
+                            ${isSubOpen ? "max-h-60" : "max-h-0"}`}
                         >
                           {category.categories!.map((sub) => (
                             <li key={sub.url}>
                               <Link
                                 href={getSubMenuHref(key, sub.url)}
-                                onClick={() => setIsOpen(false)}
-                                className="block py-2 text-sm text-muted transition-colors hover:text-primary pc:px-4 pc:py-2.5 pc:hover:bg-surface"
+                                onClick={closeMenu}
+                                className="block bg-surface/60 px-6 py-2.5 text-muted transition-colors hover:text-primary"
                               >
                                 {sub.name}
                               </Link>
@@ -82,32 +157,56 @@ export default function Header() {
                   );
                 })}
               </ul>
+
+              <div className="border-t border-gray-100 p-5 pc:hidden">
+                <Link href="/inquiry/write" onClick={closeMenu} className="bg-primary text-white rounded-full block w-full py-3 text-center text-base">
+                  간편 상담 신청
+                </Link>
+              </div>
             </nav>
 
-            <div className="flex items-center gap-4 pc:gap-6">
-              <Link href="/landing" className="btn-primary hidden px-3 py-1.5 text-sm pc:inline-flex">
-                상담 신청
-              </Link>
+            <Link href="/inquiry/write" className="btn-primary hidden px-4 py-2 text-base pc:inline-flex">
+              간편 상담 신청
+            </Link>
 
-              <button
-                type="button"
-                onClick={() => setIsOpen(true)}
-                className="flex h-5 w-6 shrink-0 flex-col justify-center gap-1 pc:hidden"
-                aria-label="메뉴 열기"
-              >
-                <span className="block h-0.5 w-full rounded-full bg-title" />
-                <span className="block h-0.5 w-full rounded-full bg-title" />
-                <span className="block h-0.5 w-full rounded-full bg-title" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              aria-label="메뉴 열기"
+              aria-expanded={isOpen}
+              aria-controls="gnb"
+              className="flex h-10 w-10 shrink-0 items-center justify-center pc:hidden"
+            >
+              <MenuIcon className="h-6 w-6 text-title" />
+            </button>
           </div>
         </div>
+
+        {/* PC 전용: 메인 메뉴 hover 시 펼쳐지는 서브메뉴 */}
+        {hoveredCategory?.categories && (
+          <div className="absolute inset-x-0 top-full hidden border-t border-gray-100 bg-white pc:block">
+            <ul className="mx-auto flex max-w-300 items-center gap-8 px-0 py-4">
+              {hoveredCategory.categories.map((sub) => (
+                <li key={sub.url}>
+                  <Link
+                    href={getSubMenuHref(hoveredKey!, sub.url)}
+                    onClick={closeMenu}
+                    className="text-base text-body transition-colors hover:text-primary"
+                  >
+                    {sub.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </header>
 
       <div
+        aria-hidden="true"
+        onClick={closeMenu}
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 pc:hidden
           ${isOpen ? "visible opacity-100" : "invisible opacity-0"}`}
-        onClick={() => setIsOpen(false)}
       />
     </>
   );

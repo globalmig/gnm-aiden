@@ -1,33 +1,51 @@
 export const USER_CATEGORY: { [key: string]: { title: string; categories?: { name: string, url: string }[], banner?: string } } = {
-    introduction: {
-        title: "회사소개",
-    },
     internet: {
         title: "인터넷",
+        categories: [
+            { name: "KT", url: "kt" },
+            { name: "SK", url: "sk" },
+            { name: "LG U+", url: "lgu" },
+            { name: "LG헬로비전", url: "lg-hellovision" },
+            { name: "KT스카이라이프", url: "kt-skylife" },
+            { name: "SK세븐모바일", url: "sk-7mobile" },
+        ],
     },
     tv: {
         title: "TV",
-        categories: [
-            { name: "전체", url: "all" },
-            { name: "인기상품", url: "popular" },
-        ],
     },
     inquiry: {
-        title: "문의",
+        title: "질문&답변",
+    },
+    notice: {
+        title: "공지사항",
     },
 }
 
 export const TV_PRODUCT_CATEGORIES: { name: string; url: string }[] = [
-    { name: "스마트TV", url: "smart" },
-    { name: "OLED TV", url: "oled" },
-    { name: "QLED TV", url: "qled" },
-    { name: "일반형 TV", url: "standard" },
+    { name: "스탠드형", url: "stand" },
+    { name: "벽걸이형", url: "wall" },
 ];
 
 export const TV_BRAND_CATEGORIES: { name: string; url: string }[] = [
-    { name: "삼성전자", url: "samsung" },
     { name: "LG전자", url: "lg" },
-    { name: "기타", url: "etc" },
+    { name: "삼성", url: "samsung" },
+    { name: "아남", url: "anam" },
+    { name: "더함", url: "deoham" },
+    { name: "루컴즈전자", url: "lucoms" },
+    { name: "프리즘코리아", url: "prism" },
+    { name: "스마트뷰", url: "smartview" },
+    { name: "대우써머스", url: "daewoo-summers" },
+    { name: "위니아", url: "winia" },
+    { name: "인켈", url: "inkel" },
+];
+
+export const TV_SIZE_CATEGORIES: { name: string; url: string }[] = [
+    { name: "40인치 미만", url: "under-40" },
+    { name: "40~49인치", url: "40-49" },
+    { name: "50~59인치", url: "50-59" },
+    { name: "60~69인치", url: "60-69" },
+    { name: "70~79인치", url: "70-79" },
+    { name: "80인치 이상", url: "80-plus" },
 ];
 
 export function getTvProductCategoryLabel(slug: string | null) {
@@ -36,6 +54,10 @@ export function getTvProductCategoryLabel(slug: string | null) {
 
 export function getTvBrandLabel(slug: string | null) {
     return TV_BRAND_CATEGORIES.find((c) => c.url === slug)?.name;
+}
+
+export function getTvSizeLabel(slug: string | null) {
+    return TV_SIZE_CATEGORIES.find((c) => c.url === slug)?.name;
 }
 
 export function getTvListFilterLabel(slug: string | null) {
@@ -56,6 +78,7 @@ export const ADMIN_CATEGORY: { [key: string]: { title: string; categories?: { na
         title: "관리자 페이지",
         categories: [
             { name: "제품 관리", url: "products" },
+            { name: "공지사항 관리", url: "notices" },
             { name: "문의 관리", url: "inquiries" },
             { name: "사용 가이드", url: "guides" },
         ],
