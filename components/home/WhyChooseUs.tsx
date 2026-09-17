@@ -2,6 +2,7 @@
 
 import "slick-carousel/slick/slick.css";
 
+import { useEffect, useState } from "react";
 import Slider from "react-slick";
 
 type Reason = {
@@ -56,22 +57,33 @@ const REASONS: Reason[] = [
   },
 ];
 
+function getSlidesToShow(width: number) {
+  if (width <= 640) return 1;
+  if (width <= 1024) return 3;
+  return 6;
+}
+
 export default function WhyChooseUs() {
+  const [slidesToShow, setSlidesToShow] = useState(6);
+
+  useEffect(() => {
+    const updateSlidesToShow = () => setSlidesToShow(getSlidesToShow(window.innerWidth));
+    updateSlidesToShow();
+    window.addEventListener("resize", updateSlidesToShow);
+    return () => window.removeEventListener("resize", updateSlidesToShow);
+  }, []);
+
   const settings = {
     dots: false,
     arrows: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 6,
+    slidesToShow,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
     pauseOnHover: true,
     swipeToSlide: true,
-    responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 3 } },
-      { breakpoint: 640, settings: { slidesToShow: 2 } },
-    ],
   };
 
   return (
@@ -84,11 +96,15 @@ export default function WhyChooseUs() {
           {REASONS.map((reason) => (
             <div key={reason.id} className="px-3 py-4">
               <div
-                className="group relative flex h-64 flex-col overflow-hidden rounded-xl bg-[radial-gradient(circle_180px_at_50%_50%,#e9f2ff_0%,#ffffff_100%)] p-6 shadow-[0_2px_10px_rgba(222,225,234,0.8)] transition-[background,transform] duration-300 hover:z-10 hover:rotate-[-5.56deg] hover:bg-[linear-gradient(135deg,#1c3de6_0%,#99aaff_100%)]"
+                className="group relative pc:h-78 overflow-hidden rounded-xl shadow-[0_2px_10px_rgba(222,225,234,0.8)] transition-transform duration-300 hover:z-10 hover:rotate-[-5.56deg]"
               >
-                <h4 className="font-bold text-title group-hover:text-white">{reason.title}</h4>
-                <p className="mt-2 text-sm font-semibold text-primary group-hover:text-white">{reason.highlight}</p>
-                <p className="mt-20 text-base leading-relaxed text-body group-hover:text-white">{reason.desc}</p>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_180px_at_50%_50%,#e9f2ff_0%,#ffffff_100%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,#1c3de6_0%,#99aaff_100%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="relative flex h-full flex-col p-6">
+                  <h4 className="font-heading font-bold text-title group-hover:text-white">{reason.title}</h4>
+                  <p className="mt-2 text-sm font-semibold text-primary group-hover:text-white">{reason.highlight}</p>
+                  <p className="mt-20 text-base leading-relaxed text-body group-hover:text-white">{reason.desc}</p>
+                </div>
               </div>
             </div>
           ))}

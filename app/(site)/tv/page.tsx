@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import CategoryBanner from "@/components/common/CategoryBanner";
 import TvProductItem, { type TvProduct } from "@/components/tv/TvProductItem";
+import PopularTvProductItem from "@/components/tv/PopularTvProductItem";
 import TvFilterBar, { ALL_VALUE, DEFAULT_TV_FILTER, type TvFilterState } from "@/components/tv/TvFilterBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { TV_BRAND_CATEGORIES } from "@/datas/categories";
@@ -79,11 +80,18 @@ export default function TvPage() {
           </div>
 
           {visibleProducts.length > 0 ? (
-            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 pc:grid-cols-4 pc:gap-5">
-              {visibleProducts.map((product) => (
-                <TvProductItem key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="mt-6 flex flex-col gap-4 pc:hidden">
+                {visibleProducts.map((product) => (
+                  <PopularTvProductItem key={product.id} product={product} />
+                ))}
+              </div>
+              <div className="mt-6 hidden pc:grid pc:grid-cols-4 pc:gap-5">
+                {visibleProducts.map((product) => (
+                  <TvProductItem key={product.id} product={product} />
+                ))}
+              </div>
+            </>
           ) : (
             <p className="py-16 text-center text-base text-muted">조건에 맞는 상품이 없습니다.</p>
           )}

@@ -67,8 +67,10 @@ export default function InquiryWritePage() {
                     <form onSubmit={onSubmitForm} className="mt-6 w-full">
                         <div className="flex items-start gap-2">
                             <span className="text-lg font-bold text-primary pc:text-2xl">Q</span>
+                            <label htmlFor="inquiry-title" className="sr-only">제목</label>
                             <input
                                 type="text"
+                                id="inquiry-title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="제목을 입력해주세요."
@@ -77,28 +79,38 @@ export default function InquiryWritePage() {
                         </div>
 
                         <div className="mt-3 flex flex-col gap-3 pc:flex-row">
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="이름"
-                                className="form-input pc:w-40"
-                            />
-                            <input
-                                type="tel"
-                                inputMode="numeric"
-                                value={phone}
-                                onChange={onChangePhone}
-                                maxLength={11}
-                                placeholder="연락처 (숫자만 입력)"
-                                className="form-input pc:w-56"
-                            />
+                            <div className="pc:w-40">
+                                <label htmlFor="inquiry-name" className="sr-only">이름</label>
+                                <input
+                                    type="text"
+                                    id="inquiry-name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="이름"
+                                    className="form-input w-full"
+                                />
+                            </div>
+                            <div className="pc:w-56">
+                                <label htmlFor="inquiry-phone" className="sr-only">연락처</label>
+                                <input
+                                    type="tel"
+                                    id="inquiry-phone"
+                                    inputMode="numeric"
+                                    value={phone}
+                                    onChange={onChangePhone}
+                                    maxLength={11}
+                                    placeholder="연락처 (숫자만 입력)"
+                                    className="form-input w-full"
+                                />
+                            </div>
                         </div>
 
                         <div className="mt-4 border-t border-table-border" />
 
                         <div className="py-8 min-h-50">
+                            <label htmlFor="inquiry-content" className="sr-only">문의 내용</label>
                             <textarea
+                                id="inquiry-content"
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 rows={8}
@@ -120,13 +132,17 @@ export default function InquiryWritePage() {
                             </label>
 
                             {isSecret && (
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="글 확인 시 사용할 비밀번호를 입력해주세요."
-                                    className="form-input w-full pc:w-100"
-                                />
+                                <div>
+                                    <label htmlFor="inquiry-password" className="sr-only">비밀글 비밀번호</label>
+                                    <input
+                                        type="password"
+                                        id="inquiry-password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="글 확인 시 사용할 비밀번호를 입력해주세요."
+                                        className="form-input w-full pc:w-100"
+                                    />
+                                </div>
                             )}
                         </div>
 

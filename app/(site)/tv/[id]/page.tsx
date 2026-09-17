@@ -1,13 +1,14 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useRef, useState } from "react";
 import Link from "next/link";
 import Skeleton from "@/components/ui/Skeleton";
-import TvProductItem, { type TvProduct } from "@/components/tv/TvProductItem";
+import { type TvProduct } from "@/components/tv/TvProductItem";
+import PopularTvProductItem from "@/components/tv/PopularTvProductItem";
 import TvSpecInfoBar from "@/components/tv/TvSpecInfoBar";
 import TvSpecTable, { type TvSpecRow } from "@/components/tv/TvSpecTable";
 import TvOrderPanel from "@/components/tv/TvOrderPanel";
-import TvMobileStickyBar from "@/components/tv/TvMobileStickyBar";
+import TvMobileFixedBar from "@/components/tv/TvMobileFixedBar";
 import tvProducts from "@/datas/tvProducts.json";
 import {
   AFFILIATE_CARD_OPTIONS,
@@ -26,6 +27,36 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
   const [cardId, setCardId] = useState(AFFILIATE_CARD_OPTIONS[0].id);
   const [years, setYears] = useState(COMMITMENT_OPTIONS[0].years);
 
+  const popularScrollRef = useRef<HTMLDivElement>(null);
+  const popularDragState = useRef({ isDragging: false, startX: 0, startScrollLeft: 0 });
+  const [isPopularDragging, setIsPopularDragging] = useState(false);
+
+  const handlePopularDragStart = (event: React.MouseEvent<HTMLDivElement>) => {
+    const track = popularScrollRef.current;
+    if (!track) return;
+
+    popularDragState.current = {
+      isDragging: true,
+      startX: event.pageX,
+      startScrollLeft: track.scrollLeft,
+    };
+    setIsPopularDragging(true);
+  };
+
+  const handlePopularDragMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const track = popularScrollRef.current;
+    if (!track || !popularDragState.current.isDragging) return;
+
+    event.preventDefault();
+    const walked = event.pageX - popularDragState.current.startX;
+    track.scrollLeft = popularDragState.current.startScrollLeft - walked;
+  };
+
+  const handlePopularDragEnd = () => {
+    popularDragState.current.isDragging = false;
+    setIsPopularDragging(false);
+  };
+
   if (!product) {
     return (
       <section>
@@ -43,7 +74,7 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
   const selectedCard = AFFILIATE_CARD_OPTIONS.find((card) => card.id === cardId) ?? AFFILIATE_CARD_OPTIONS[0];
   const { benefit, monthlyRental } = calcRental(detail.listRental, years, selectedCard.discount);
 
-  const relatedProducts = PRODUCTS.filter((item) => item.id !== product.id).slice(0, 3);
+  const relatedProducts = PRODUCTS.filter((item) => item.id !== product.id).slice(0, 8);
 
   const basicInfoRows: TvSpecRow[] = [
     { label: "브랜드", value: product.brand },
@@ -117,10 +148,24 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
 
           <div className="mt-20 pc:mt-25">
             <p className="font-bold text-title">인기 상품 추천</p>
-            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 pc:gap-5">
-              {relatedProducts.map((item) => (
-                <TvProductItem key={item.id} product={item} />
-              ))}
+            <div className="relative mt-6">
+              <div
+                ref={popularScrollRef}
+                onMouseDown={handlePopularDragStart}
+                onMouseMove={handlePopularDragMove}
+                onMouseUp={handlePopularDragEnd}
+                onMouseLeave={handlePopularDragEnd}
+                className={`no-scrollbar flex gap-4 overflow-x-auto pc:gap-6 ${
+                  isPopularDragging ? "cursor-grabbing select-none" : "cursor-grab"
+                }`}
+              >
+                {relatedProducts.map((item) => (
+                  <div key={item.id} className="w-70 shrink-0 sm:w-85 pc:w-109.25">
+                    <PopularTvProductItem product={item} />
+                  </div>
+                ))}
+              </div>
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-white to-transparent pc:w-32" />
             </div>
             <div className="mt-8 text-center">
               <Link href="/tv" className="btn-ghost">
@@ -131,7 +176,7 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
         </div>
       </section>
 
-      <TvMobileStickyBar benefit={benefit} monthlyRental={monthlyRental} />
+      <TvMobileFixedBar benefit={benefit} monthlyRental={monthlyRental} />
     </>
   );
 }

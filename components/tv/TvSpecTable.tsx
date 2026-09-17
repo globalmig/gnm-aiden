@@ -4,7 +4,7 @@ export default function TvSpecTable({ title, rows }: { title: string; rows: TvSp
   return (
     <div>
       <p className="font-bold text-title">{title}</p>
-      <div className="mt-4 overflow-hidden rounded-2xl border border-table-border">
+      <div className="mt-4 overflow-hidden border-t border-b border-t-table-border border-b-table-border ">
         <table className="w-full border-collapse text-sm pc:text-base">
           <tbody>
             {rows.map((row) => (

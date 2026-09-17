@@ -16,10 +16,10 @@ interface NoticeBoardProps {
 
 export default function NoticeBoard({ items, detailBasePath = "/notice" }: NoticeBoardProps) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full table-scroll">
       <table className="w-full min-w-0 border-collapse text-left pc:min-w-150">
         <thead className="hidden pc:table-header-group">
-          <tr className="bg-table-head text-base text-title">
+          <tr className="bg-table-head border-b border-b-primary/50 text-base text-title">
             <th className="px-4 py-4 pc:px-6">제목</th>
             <th className="w-28 px-4 py-4 text-center pc:w-40">작성일</th>
           </tr>
@@ -36,7 +36,7 @@ export default function NoticeBoard({ items, detailBasePath = "/notice" }: Notic
               <tr
                 key={item.id}
                 className={`block border-b border-table-border py-3 text-base text-body pc:table-row pc:py-0 ${
-                  item.isPinned ? "bg-sky-light" : ""
+                  item.isPinned ? "bg-gray-50" : ""
                 }`}
               >
                 <td className="block min-w-0 px-4 py-1 pc:table-cell pc:px-6 pc:py-4">

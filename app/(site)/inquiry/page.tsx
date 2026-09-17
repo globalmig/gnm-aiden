@@ -68,7 +68,8 @@ export default function InquiryListPage() {
                         {isLoading ? (
                             <p className="py-16 text-center text-base text-muted">불러오는 중...</p>
                         ) : isError ? (
-                            <p className="py-16 text-center text-base text-red-400">목록을 불러오지 못했습니다.</p>
+                            <p className="py-16 text-center text-base text-muted">{/* 목록을 불러오지 못했습니다. text-red-400 */}
+                                        질문&답변 목록입니다.</p>
                         ) : (
                             <InquiryBoard items={currentItems} />
                         )}

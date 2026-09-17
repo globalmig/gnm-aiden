@@ -12,8 +12,7 @@ function ChevronIcon({ className }: { className?: string }) {
   );
 }
 
-// 모바일에서 footer 위에 고정되는 예상 렌탈료 바. internet 페이지의 MobileStickyPriceBar와 동일한 패턴.
-export default function TvMobileStickyBar({
+export default function TvMobileFixedBar({
   benefit,
   monthlyRental,
 }: {
@@ -23,7 +22,7 @@ export default function TvMobileStickyBar({
   const [open, setOpen] = useState(true);
 
   return (
-    <div className="sticky bottom-0 z-30 border-t border-black/10 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pc:hidden">
+    <div className="fixed w-full bottom-0 z-70 border-t border-black/10 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pc:hidden">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}

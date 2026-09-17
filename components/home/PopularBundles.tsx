@@ -64,26 +64,26 @@ const BUNDLES: Bundle[] = [
 function BundleCard({ bundle }: { bundle: Bundle }) {
   return (
     <article className="card flex h-full flex-col">
-      <div className="p-6 pc:p-8">
-        <div className="flex items-center gap-4 pc:justify-center pc:gap-6">
+      <div className="p-6 pt-8 pc:p-8">
+        <div className="flex items-center justify-center gap-4 pc:gap-6">
           <Image src="/images/logo_kt.png" alt="KT" width={57} height={47} className="h-7 w-auto object-contain pc:h-8.5" />
           <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 pc:h-16 pc:w-16 items-center justify-center rounded-full bg-sky-light">
+            <div className="flex h-12 w-12 pc:h-16 pc:w-16 items-center justify-center rounded-full bg-sky-light">
               <Image src="/icons/icon_wifi.png" alt="인터넷 아이콘" width={25} height={20} className="h-4 w-auto object-contain pc:h-5" />
-            </span>
-            <span className="text-base text-muted pc:text-[1.5rem]">+</span>
-            <span className="flex h-9 w-9 pc:h-16 pc:w-16 items-center justify-center rounded-full bg-sky-light">
+            </div>
+            <div className="text-base text-muted pc:text-[1.5rem]">+</div>
+            <div className="flex h-12 w-12 pc:h-16 pc:w-16 items-center justify-center rounded-full bg-sky-light">
               <Image src="/icons/icon_tv.png" alt="TV 아이콘" width={22} height={25} className="h-4 w-auto object-contain pc:h-5" />
-            </span>
+            </div>
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2 pc:mt-8 pc:gap-4 pc:justify-center">
-          <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-white pc:px-4">{bundle.speed}</span>
-          <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-title pc:px-4">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 pc:mt-8 pc:gap-4">
+          <div className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-white pc:px-4">{bundle.speed}</div>
+          <div className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-title pc:px-4">
             {bundle.type}
-          </span>
-          <span className="text-xs text-body font-semibold">{bundle.extra}</span>
+          </div>
+          <div className="text-xs text-body font-semibold">{bundle.extra}</div>
         </div>
 
         <p className="mt-5 text-xs text-muted">월 예상 요금</p>

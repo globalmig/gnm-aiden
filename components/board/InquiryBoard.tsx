@@ -18,7 +18,7 @@ interface InquiryBoardProps {
 
 export default function InquiryBoard({ items, detailBasePath = "/inquiry" }: InquiryBoardProps) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full table-scroll">
       <table className="w-full min-w-0 border-collapse text-left pc:min-w-150">
         <thead className="hidden pc:table-header-group">
           <tr className="bg-table-head text-base text-title">

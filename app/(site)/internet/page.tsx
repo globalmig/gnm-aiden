@@ -1,11 +1,10 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import InternetPriceTable from "@/components/internet/InternetPriceTable";
-import MobileStickyPriceBar from "@/components/internet/MobileStickyPriceBar";
 import PriceCalculatorSection, { type TvChannel } from "@/components/internet/PriceCalculatorSection";
 import {
   COMPANY_OPTIONS,
@@ -102,6 +101,14 @@ function InternetPageContent() {
   const [speed, setSpeed] = useState<Speed>("500");
   const [tvChannel, setTvChannel] = useState<TvChannel>("basic");
 
+  // 홈 화면 등에서 통신사 파라미터를 바꿔 재진입해도(라우터 캐시로 리마운트 없이) 선택이 동기화되도록 처리
+  useEffect(() => {
+    if (isCompany(companyParam) && companyParam !== company) {
+      setCompany(companyParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyParam]);
+
   // 통신사·상품유형·결합여부를 바꿔서 현재 속도 조합에 데이터가 없어지면, 있는 속도로 자동 대체해서 보여준다
   const effectiveSpeed = isComboAvailable(company, productType, speed, bundleType)
     ? speed
@@ -118,7 +125,7 @@ function InternetPageContent() {
     <>
       <section className="bg-white">
         <div>
-          <h2 className="font-bold text-title">원하시는 조건을 골라 예상 월 요금을 확인해보세요.</h2>
+          <h1 className="font-bold text-title">원하시는 조건을 골라 예상 월 요금을 확인해보세요.</h1>
 
           <PriceCalculatorSection
             company={company}
@@ -140,9 +147,9 @@ function InternetPageContent() {
             <div className="card rounded-2xl mt-20 pc:mt-25">
 
               {/* hero title */}
-              <div className="rounded-tr-2xl rounded-tl-2xl border p-9 text-center text-white bg-[linear-gradient(135deg,#1C3DE6_0%,#95A6FE_100%)]">
-                <p className="text-base font-semibold">속도별 실제 납부 금액부터 체크, 설치 전 미리보기</p>
-                <h3 className="mt-2 font-bold text-3xl">
+              <div className="rounded-tr-2xl rounded-tl-2xl border py-9 px-5 pc:p-9 text-center text-white bg-[linear-gradient(135deg,#1C3DE6_0%,#95A6FE_100%)]">
+                <p className="text-base font-semibold">속도별 실제 납부 금액부터 체크, <br className="pc:hidden"/> 설치 전 미리보기</p>
+                <h3 className="mt-2 font-bold text-xl pc:text-3xl">
                   머리 아픈 가입 조건은 싹 줄이고
                   <br />
                   꼭 필요한 핵심만 담았습니다.
@@ -177,7 +184,7 @@ function InternetPageContent() {
                           className={`relative overflow-hidden rounded-2xl p-6 pc:py-10 ${card.className}`}
                         >
                           <div className="flex justify-between">
-                            <div className="flex w-1/4 shrink-0 items-center justify-center self-stretch">
+                            <div className="hidden pc:flex w-1/4 shrink-0 items-center justify-center self-stretch">
                               <Image
                                 src={card.image}
                                 alt={card.title}
@@ -186,7 +193,7 @@ function InternetPageContent() {
                                 className="h-auto w-full object-contain"
                               />
                             </div>
-                            <div className="w-2/3">
+                            <div className="w-full pc:w-2/3">
                               <p className="text-xs font-bold opacity-80">{card.title}</p>
                               <h3 className={`mt-1 text-lg font-bold pc:text-2xl ${card.headlineClassName ?? ""}`}>
                                 {card.headline}
@@ -195,7 +202,7 @@ function InternetPageContent() {
                                 {card.desc.split(/(?<=\.)\s+/).map((sentence) => (
                                   <li key={sentence} className="flex gap-2 text-sm opacity-90 pc:text-base">
                                     <span aria-hidden="true" className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-current pc:mt-3" />
-                                    <span>{sentence}</span>
+                                    {sentence}
                                   </li>
                                 ))}
                               </ul>
@@ -222,7 +229,7 @@ function InternetPageContent() {
                     <p className="mt-4 text-body">당일 결제 없이, 첫 요금서에서 깔끔하게 확인하세요.</p>
                   </div>
 
-                  <div className="mt-8 overflow-x-auto">
+                  <div className="mt-8 table-scroll">
                     <table className="w-full min-w-125 border-collapse text-center">
                       <thead>
                         <tr className="border-b border-black/10 text-base text-title">
@@ -248,7 +255,7 @@ function InternetPageContent() {
                   <ul className="mt-6 space-y-2 p-5 bg-sky-light rounded-2xl text-sm">
                     {INSTALL_GUIDE.map((item) => (
                       <li key={item.title} className="list-disc list-inside text-sm">
-                        <span className="font-bold">{item.title}</span> <span>{item.desc}</span>
+                        <span className="font-bold">{item.title}</span> {item.desc}
                       </li>
                     ))}
                   </ul>
@@ -286,14 +293,6 @@ function InternetPageContent() {
           </PriceCalculatorSection>
         </div>
       </section>
-
-      <MobileStickyPriceBar
-        bundleType={bundleType}
-        nonePlan={nonePlan}
-        mobilePlan={mobilePlan}
-        finalPrice={selectedPrice}
-        gift={selectedGift}
-      />
     </>
   );
 }

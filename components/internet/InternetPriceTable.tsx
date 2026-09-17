@@ -55,7 +55,7 @@ export default function InternetPriceTable({ company }: { company: Company }) {
 
   return (
     <div className="overflow-hidden border-t border-b border-table-border">
-      <div className="overflow-x-auto">
+      <div className="table-scroll">
         <table className="w-full min-w-175 border-collapse text-center [&_tr>*:not(:last-child)]:border-r [&_tr>*:not(:last-child)]:border-table-border">
           <thead>
             <tr className="bg-table-head text-base">

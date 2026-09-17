@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 
 export interface CommentFormProps {
     onSubmit: (content: string) => Promise<boolean> | boolean;
@@ -25,6 +25,7 @@ export default function CommentForm({
 }: CommentFormProps) {
     const [content, setContent] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const inputId = useId();
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent) => {
@@ -46,8 +47,9 @@ export default function CommentForm({
     if (multiline) {
         return (
             <form onSubmit={handleSubmit} className="space-y-3">
-                {label && <label className="form-label">{label}</label>}
+                {label && <label htmlFor={inputId} className="form-label">{label}</label>}
                 <textarea
+                    id={inputId}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     rows={4}
@@ -66,9 +68,10 @@ export default function CommentForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-1.5">
-            {label && <label className="form-label">{label}</label>}
+            {label && <label htmlFor={inputId} className="form-label">{label}</label>}
             <div className="flex gap-2">
                 <input
+                    id={inputId}
                     type="text"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}

@@ -1,6 +1,6 @@
 export const COMPANY_INFO = {
   name: "에이든",
-  companyName: "(주)에이든 인포메이션",
+  companyName: "에이든",
   ceo: "최경흠 (신율)",
   phone: "070-4146-7781",
   phoneHref: "tel:070-4146-7781",

@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import MobileFixedPriceBar from "@/components/internet/MobileFixedPriceBar";
+import PriceSummaryDetails from "@/components/internet/PriceSummaryDetails";
 import {
   BUNDLE_TYPE_OPTIONS,
   COMPANY_OPTIONS,
   PRODUCT_TYPE_OPTIONS,
   SPEED_OPTIONS,
-  formatGiftRange,
   formatPrice,
   getLowestPrice,
   getPlans,
@@ -125,6 +126,7 @@ export default function PriceCalculatorSection({
   const installFee = INSTALL_FEE_BY_PRODUCT[productType];
 
   return (
+    <>
     <div className="mt-8 flex flex-col gap-8 pc:flex-row pc:gap-x-12.5">
       <div className="space-y-5 pc:space-y-8 pc:flex-1">
         <StepCard step="STEP 01" title="통신사 선택">
@@ -185,7 +187,7 @@ export default function PriceCalculatorSection({
         </StepCard>
 
         <StepCard step="STEP 03" title="인터넷 속도">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {SPEED_OPTIONS.map((option) => {
               const price = getLowestPrice(getPlans(company, productType, option.value, bundleType));
               const available = price !== undefined;
@@ -218,7 +220,7 @@ export default function PriceCalculatorSection({
         </StepCard>
 
         <StepCard step="STEP 04" title="TV 채널">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {TV_CHANNEL_OPTIONS.map((option) => {
               const isSelected = tvChannel === option.value;
               return (
@@ -242,69 +244,24 @@ export default function PriceCalculatorSection({
         {children}
       </div>
 
-      <div className="pc:w-100 pc:shrink-0">
+      <div className="hidden pc:block pc:w-100 pc:shrink-0">
         <aside className="rounded-2xl bg-sky-light p-6 pc:sticky pc:top-24 pc:py-10">
           <p className="text-base font-bold text-primary">예상 월 요금</p>
 
-          <div className="mt-6 space-y-4 text-base pc:mt-10">
-            <div className="flex items-center justify-between">
-              <p className="text-black font-semibold">통신사</p>
-              <div>
-                <Image
-                  src={COMPANY_LOGOS[company].src}
-                  alt={selectedCompanyLabel ?? ""}
-                  width={COMPANY_LOGOS[company].width}
-                  height={COMPANY_LOGOS[company].height}
-                  className="h-5 w-auto object-contain"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-black font-semibold">가입상품</p>
-              <p>
-                {selectedSpeedLabel} · {selectedProductLabel}
-              </p>
-            </div>
-            {selectedTvChannel && (
-              <div className="flex items-center justify-between">
-                <p className="text-black font-semibold">TV 채널</p>
-                <p>
-                  {selectedTvChannel.count} · {selectedTvChannel.label}
-                </p>
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <p className="text-black font-semibold">설치비</p>
-              <p>
-                평일 {formatPrice(installFee.weekday)} / 주말 {formatPrice(installFee.weekend)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-7 space-y-2 p-4 text-base bg-white pc:rounded-3xl pc:mt-12 pc:space-y-5 pc:py-6">
-            {nonePlan !== undefined && (
-              <p className="flex items-center justify-between text-muted">
-                <span>기본요금 (미결합)</span>
-                <span className={`font-bold ${bundleType === "mobile" && mobilePlan !== undefined ? "line-through" : ""}`}>
-                  {formatPrice(nonePlan)}
-                </span>
-              </p>
-            )}
-            {mobilePlan !== undefined && (
-              <p className="flex items-center justify-between text-body">
-                <span>휴대폰 결합 요금</span>
-                <span className="font-bold">{formatPrice(mobilePlan)}</span>
-              </p>
-            )}
-            {!selectedPlans && (
-              <p className="text-muted">선택하신 조합은 아직 제공되지 않는 상품이에요.</p>
-            )}
-            {selectedGift && (
-              <p className="flex items-center justify-between text-body">
-                <span>사은품</span>
-                <span className="font-semibold text-primary">{formatGiftRange(selectedGift)}</span>
-              </p>
-            )}
+          <div className="mt-6 pc:mt-10">
+            <PriceSummaryDetails
+              companyLogo={COMPANY_LOGOS[company]}
+              selectedCompanyLabel={selectedCompanyLabel}
+              selectedSpeedLabel={selectedSpeedLabel}
+              selectedProductLabel={selectedProductLabel}
+              selectedTvChannel={selectedTvChannel}
+              installFee={installFee}
+              bundleType={bundleType}
+              nonePlan={nonePlan}
+              mobilePlan={mobilePlan}
+              selectedGift={selectedGift}
+              selectedPlans={selectedPlans}
+            />
           </div>
 
           <p className="mt-5 text-right text-2xl font-extrabold text-primary">
@@ -322,5 +279,23 @@ export default function PriceCalculatorSection({
         </aside>
       </div>
     </div>
+
+    <MobileFixedPriceBar
+      companyLogo={COMPANY_LOGOS[company]}
+      selectedCompanyLabel={selectedCompanyLabel}
+      selectedSpeedLabel={selectedSpeedLabel}
+      selectedProductLabel={selectedProductLabel}
+      selectedTvChannel={selectedTvChannel}
+      installFee={installFee}
+      bundleType={bundleType}
+      nonePlan={nonePlan}
+      mobilePlan={mobilePlan}
+      selectedGift={selectedGift}
+      selectedPlans={selectedPlans}
+      finalPrice={selectedPrice}
+    />
+    {/* 하단 고정 바에 콘텐츠가 가려지지 않도록 확보하는 여백 (모바일 전용) */}
+    <div className="h-40 pc:hidden" aria-hidden="true" />
+    </>
   );
 }

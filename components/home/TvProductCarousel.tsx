@@ -2,30 +2,40 @@
 
 import "slick-carousel/slick/slick.css";
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Slider from "react-slick";
 import TvProductItem, { type TvProduct } from "@/components/tv/TvProductItem";
 import tvProducts from "@/datas/tvProducts.json";
 
 const PRODUCTS = tvProducts as TvProduct[];
 
+function getSlidesToShow(width: number) {
+  if (width <= 640) return 1;
+  if (width <= 1024) return 2;
+  return 4;
+}
+
 export default function TvProductCarousel() {
   const sliderRef = useRef<Slider>(null);
+  const [slidesToShow, setSlidesToShow] = useState(4);
+
+  useEffect(() => {
+    const updateSlidesToShow = () => setSlidesToShow(getSlidesToShow(window.innerWidth));
+    updateSlidesToShow();
+    window.addEventListener("resize", updateSlidesToShow);
+    return () => window.removeEventListener("resize", updateSlidesToShow);
+  }, []);
 
   const settings = {
     dots: false,
     arrows: false,
     infinite: PRODUCTS.length > 4,
     speed: 500,
-    slidesToShow: 4,
+    slidesToShow,
     slidesToScroll: 1,
     swipeToSlide: true,
     autoplay: true,
     autoplaySpeed: 1500,
-    responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 2 } },
-      { breakpoint: 640, settings: { slidesToShow: 1 } },
-    ],
   };
 
   return (

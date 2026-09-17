@@ -15,7 +15,7 @@ export default function Home() {
       </main>
 
       {/* 통신사별 인터넷 페이지로 이동하기 */}
-      <div className="w-full mt-20 pc:max-w-300 pc:mx-auto">
+      <div className="w-full mt-20 px-[5%] pc:px-0 pc:max-w-300 pc:mx-auto">
         <TelecomShortcuts />
       </div>
 
@@ -34,7 +34,7 @@ export default function Home() {
       <TvProductCarousel />
 
       {/* CTA */}
-      <div className="w-full mt-20 px-[5%] pb-25 pc:max-w-300 pc:mx-auto pc:px-0">
+      <div className="w-full pc:mt-20 px-[5%] pb-25 pc:max-w-300 pc:mx-auto pc:px-0">
         <div
           className="rounded-3xl bg-cover bg-center px-8 py-10 text-white pc:flex pc:items-end pc:justify-between"
           style={{ backgroundImage: "url('/images/cta-bg.png')" }}
@@ -48,7 +48,7 @@ export default function Home() {
             </p>
           </div>
           <Link
-            href="#"
+            href="https://gnm-landing.vercel.app/"
             className="mt-6 flex w-full items-center justify-center rounded-xl bg-white px-6 py-3.5 text-base font-semibold text-title pc:mt-0 pc:w-auto pc:shrink-0"
           >
             지금 내 맞춤 혜택 조회하기

@@ -60,7 +60,7 @@ export default function Header() {
   return (
     <>
       <header
-        className="fixed w-full top-0 z-50 border-b border-gray-100 bg-white"
+        className="fixed w-full top-0 z-100 border-b border-gray-100 bg-white"
         onMouseLeave={() => setHoveredKey(null)}
       >
         <div className="mx-auto flex h-16 max-w-300 items-center justify-between px-5 pc:h-20 pc:px-0">
@@ -75,7 +75,7 @@ export default function Header() {
           <div className="flex items-center gap-2 pc:gap-8">
             <nav
               id="gnb"
-              className={`fixed inset-y-0 right-0 z-50 flex w-[80%] max-w-80 flex-col bg-white duration-300 ease-in-out
+              className={`fixed inset-y-0 right-0 z-100 flex w-[80%] max-w-80 flex-col bg-white duration-300 ease-in-out
                 pc:static pc:w-auto pc:max-w-none pc:translate-x-0 pc:flex-row
                 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
             >
@@ -138,7 +138,7 @@ export default function Header() {
                       {hasSubMenu && (
                         <ul
                           className={`overflow-hidden text-base transition-[max-height] duration-200 ease-in-out pc:hidden
-                            ${isSubOpen ? "max-h-60" : "max-h-0"}`}
+                            ${isSubOpen ? "max-h-62.5" : "max-h-0"}`}
                         >
                           {category.categories!.map((sub) => (
                             <li key={sub.url}>
@@ -159,13 +159,13 @@ export default function Header() {
               </ul>
 
               <div className="border-t border-gray-100 p-5 pc:hidden">
-                <Link href="/inquiry/write" onClick={closeMenu} className="bg-primary text-white rounded-full block w-full py-3 text-center text-base">
+                <Link href="/inquiry/write" onClick={closeMenu} className="bg-primary text-white block w-full py-3 text-center text-base">
                   간편 상담 신청
                 </Link>
               </div>
             </nav>
 
-            <Link href="/inquiry/write" className="btn-primary hidden px-4 py-2 text-base pc:inline-flex">
+            <Link href="/inquiry/write" className="btn-primary hidden px-4 py-2 text-base pc:inline-flex rounded-full">
               간편 상담 신청
             </Link>
 
@@ -205,7 +205,7 @@ export default function Header() {
       <div
         aria-hidden="true"
         onClick={closeMenu}
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 pc:hidden
+        className={`fixed inset-0 z-90 bg-black/50 transition-opacity duration-300 pc:hidden
           ${isOpen ? "visible opacity-100" : "invisible opacity-0"}`}
       />
     </>

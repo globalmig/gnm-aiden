@@ -16,7 +16,7 @@ export default function TelecomShortcuts() {
       {TELECOM_LINKS.map((item) => (
         <li key={item.key} className="shrink-0">
           <Link href={`/internet?company=${item.key}`} className="flex flex-col items-center gap-3 text-center">
-            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-card pc:h-30 pc:w-30">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-card transition-shadow duration-300 hover:shadow-[0_2.6px_20px_0_rgb(222_225_234/0.8)] pc:h-30 pc:w-30">
               <Image
                 src={item.logo}
                 alt={item.name}
@@ -24,20 +24,20 @@ export default function TelecomShortcuts() {
                 height={item.height}
                 className="h-auto max-h-8 w-auto max-w-14 object-contain pc:max-h-9 pc:max-w-16"
               />
-            </span>
-            <span className="text-base font-medium text-body">{item.name}</span>
+            </div>
+            <p className="text-base font-medium text-body">{item.name}</p>
           </Link>
         </li>
       ))}
 
       <li className="shrink-0">
         <Link href="/tv" className="flex flex-col items-center gap-3 text-center">
-          <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-card pc:h-30 pc:w-30">
-            <span className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="animate-float inline-block rounded-full bg-point px-2 py-0.5 text-[10px] font-bold whitespace-nowrap text-white">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-card pc:h-30 pc:w-30">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <p className="animate-float inline-block rounded-full bg-point px-2 py-0.5 text-[10px] font-bold whitespace-nowrap text-white pc:text-base pc:px-4">
                 NEW
-              </span>
-            </span>
+              </p>
+            </div>
             <Image
               src="/images/icon-menu-tv.png"
               alt=""
@@ -45,7 +45,7 @@ export default function TelecomShortcuts() {
               height={61}
               className="h-auto max-h-8 w-auto max-w-12 object-contain"
             />
-          </span>
+          </div>
           <span className="text-base font-medium text-body">TV 상품 둘러보기</span>
         </Link>
       </li>

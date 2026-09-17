@@ -13,6 +13,11 @@ const esamanruMedium = localFont({
   variable: "--font-esamanru-medium",
 });
 
+const esamanruLight = localFont({
+  src: "../public/fonts/esamanru Light.ttf",
+  variable: "--font-esamanru-light",
+});
+
 export const metadata: Metadata = {
   title: "",
   description: "",
@@ -44,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ko"
-      className={`${notoSansKr.variable} ${esamanruMedium.variable}`}
+      className={`${notoSansKr.variable} ${esamanruMedium.variable} ${esamanruLight.variable}`}
     >
       <body>{children}</body>
     </html>
