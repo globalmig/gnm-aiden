@@ -78,6 +78,7 @@ export const ADMIN_CATEGORY: { [key: string]: { title: string; categories?: { na
         title: "관리자 페이지",
         categories: [
             { name: "제품 관리", url: "products" },
+            { name: "인터넷 요금 관리", url: "internet-pricing" },
             { name: "공지사항 관리", url: "notices" },
             { name: "문의 관리", url: "inquiries" },
             { name: "사용 가이드", url: "guides" },

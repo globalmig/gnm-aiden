@@ -19,6 +19,16 @@ type HeroSlideItem = {
 
 const HERO_SLIDES: HeroSlideItem[] = [
   {
+    id: "max-support-benefits",
+    mainCopy: "지금 받을 수 있는 최대 지원금,\n놓치지 말고 한눈에 확인하세요",
+    subCopy: "결합할수록 커지는 추가 할인과 렌탈 지원금을 한눈에 비교해 드립니다.",
+    image: "/images/hero-item1.png",
+    imageWidth: 341,
+    imageHeight: 453,
+    gradientFrom: "#788EFD",
+    gradientTo: "#ACB9FF",
+  },
+  {
     id: "transparent-fee",
     mainCopy: "속임수 없는 100% 투명한 요금,\n받을 수 있는 최대 사은품을 직접 확인하세요",
     subCopy: "매달 나가는 진짜 실 납부금과\n당일 지급 사은품을 거짓 없이 솔직하게 공개합니다.",

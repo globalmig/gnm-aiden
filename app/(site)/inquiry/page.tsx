@@ -6,12 +6,16 @@ import InquiryBoard, { type InquiryBoardItem } from "@/components/board/InquiryB
 import Pagination from "@/components/ui/Pagination";
 import CategoryBanner from "@/components/common/CategoryBanner";
 import { usePagination } from "@/hooks/usePagination";
-import type { Inquiry } from "@/types/inquiry";
+import type { Inquiry, InquiryReply } from "@/types/inquiry";
 
 const ITEMS_PER_PAGE = 10;
 
+type PublicInquiry = Pick<Inquiry, "id" | "title" | "name" | "is_secret" | "status" | "created_at"> & {
+    replies: InquiryReply[];
+};
+
 export default function InquiryListPage() {
-    const [inquiries, setInquiries] = useState<Inquiry[] | null>(null);
+    const [inquiries, setInquiries] = useState<PublicInquiry[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
 
@@ -19,7 +23,7 @@ export default function InquiryListPage() {
         setIsLoading(true);
         setIsError(false);
         try {
-            const response = await fetch("/api/inquiries");
+            const response = await fetch("/api/inquiries/public");
             const result = await response.json();
             if (!response.ok) throw new Error(result.error);
             setInquiries(result.data);

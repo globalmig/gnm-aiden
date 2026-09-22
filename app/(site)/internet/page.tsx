@@ -8,6 +8,7 @@ import InternetPriceTable from "@/components/internet/InternetPriceTable";
 import PriceCalculatorSection, { type TvChannel } from "@/components/internet/PriceCalculatorSection";
 import {
   COMPANY_OPTIONS,
+  DEFAULT_INTERNET_PRICING_CONFIG,
   SPEED_OPTIONS,
   getGiftRange,
   getLowestPrice,
@@ -15,6 +16,7 @@ import {
   isComboAvailable,
   type BundleType,
   type Company,
+  type InternetPricingConfig,
   type ProductType,
   type Speed,
 } from "@/datas/internetPricing";
@@ -100,6 +102,17 @@ function InternetPageContent() {
   const [bundleType, setBundleType] = useState<BundleType>("none");
   const [speed, setSpeed] = useState<Speed>("500");
   const [tvChannel, setTvChannel] = useState<TvChannel>("basic");
+  // 기본값으로 즉시 렌더한 뒤, 관리자 화면에서 저장한 최신 요금으로 조용히 교체한다(API 실패 시에도 기본값으로 정상 동작).
+  const [pricingConfig, setPricingConfig] = useState<InternetPricingConfig>(DEFAULT_INTERNET_PRICING_CONFIG);
+
+  useEffect(() => {
+    fetch("/api/internet-pricing")
+      .then((res) => res.json())
+      .then((result) => {
+        if (result?.data) setPricingConfig(result.data);
+      })
+      .catch(() => {});
+  }, []);
 
   // 홈 화면 등에서 통신사 파라미터를 바꿔 재진입해도(라우터 캐시로 리마운트 없이) 선택이 동기화되도록 처리
   useEffect(() => {
@@ -110,16 +123,16 @@ function InternetPageContent() {
   }, [companyParam]);
 
   // 통신사·상품유형·결합여부를 바꿔서 현재 속도 조합에 데이터가 없어지면, 있는 속도로 자동 대체해서 보여준다
-  const effectiveSpeed = isComboAvailable(company, productType, speed, bundleType)
+  const effectiveSpeed = isComboAvailable(pricingConfig, company, productType, speed, bundleType)
     ? speed
-    : (SPEED_OPTIONS.find((option) => isComboAvailable(company, productType, option.value, bundleType))?.value ?? speed);
+    : (SPEED_OPTIONS.find((option) => isComboAvailable(pricingConfig, company, productType, option.value, bundleType))?.value ?? speed);
 
   const selectedCompanyLabel = COMPANY_OPTIONS.find((option) => option.value === company)?.label;
-  const selectedPlans = getPlans(company, productType, effectiveSpeed, bundleType);
+  const selectedPlans = getPlans(pricingConfig, company, productType, effectiveSpeed, bundleType);
   const selectedPrice = getLowestPrice(selectedPlans);
-  const selectedGift = getGiftRange(company, productType, effectiveSpeed);
-  const nonePlan = getLowestPrice(getPlans(company, productType, effectiveSpeed, "none"));
-  const mobilePlan = getLowestPrice(getPlans(company, productType, effectiveSpeed, "mobile"));
+  const selectedGift = getGiftRange(pricingConfig, company, productType, effectiveSpeed);
+  const nonePlan = getLowestPrice(getPlans(pricingConfig, company, productType, effectiveSpeed, "none"));
+  const mobilePlan = getLowestPrice(getPlans(pricingConfig, company, productType, effectiveSpeed, "mobile"));
 
   return (
     <>
@@ -128,6 +141,7 @@ function InternetPageContent() {
           <h1 className="font-bold text-title">원하시는 조건을 골라 예상 월 요금을 확인해보세요.</h1>
 
           <PriceCalculatorSection
+            config={pricingConfig}
             company={company}
             productType={productType}
             bundleType={bundleType}
@@ -163,7 +177,7 @@ function InternetPageContent() {
                     <p className="caption font-semibold">{selectedCompanyLabel} 인터넷 요금표 한눈에 보기</p>
                   </div>
                   <div className="mt-8">
-                    <InternetPriceTable company={company} />
+                    <InternetPriceTable config={pricingConfig} company={company} />
                   </div>
                 </div>
 

@@ -43,6 +43,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             price_options: body.price_options ?? [],
             is_popular: !!body.is_popular,
             popular_order: body.popular_order ?? null,
+            ...(body.sort_order !== undefined ? { sort_order: body.sort_order } : {}),
         })
         .eq("id", id)
         .select()

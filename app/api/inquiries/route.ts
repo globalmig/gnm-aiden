@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
                   agree_collection: !!body.agree_collection,
                   agree_third_party: !!body.agree_third_party,
                   agree_age: !!body.agree_age,
-                  agree_marketing: !!body.agree_marketing,
               }
             : {};
 

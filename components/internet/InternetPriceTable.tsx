@@ -9,6 +9,7 @@ import {
   getPlans,
   type BundleType,
   type Company,
+  type InternetPricingConfig,
   type ProductType,
   type Speed,
 } from "@/datas/internetPricing";
@@ -19,17 +20,19 @@ const PRODUCT_ROW_GROUPS: { productType: ProductType; label: string }[] = [
 ];
 
 function PlanCell({
+  config,
   company,
   productType,
   speed,
   bundleType,
 }: {
+  config: InternetPricingConfig;
   company: Company;
   productType: ProductType;
   speed: Speed;
   bundleType: BundleType;
 }) {
-  const plans = getPlans(company, productType, speed, bundleType);
+  const plans = getPlans(config, company, productType, speed, bundleType);
 
   if (!plans) {
     return <td className="px-2 py-4 text-base">-</td>;
@@ -49,7 +52,7 @@ function PlanCell({
   );
 }
 
-export default function InternetPriceTable({ company }: { company: Company }) {
+export default function InternetPriceTable({ config, company }: { config: InternetPricingConfig; company: Company }) {
   const giftEligible = GIFT_ELIGIBLE_COMPANIES.includes(company);
   const colsPerSpeed = giftEligible ? 2 : 1;
 
@@ -102,6 +105,7 @@ export default function InternetPriceTable({ company }: { company: Company }) {
                   {SPEED_OPTIONS.map((option) => (
                     <Fragment key={option.value}>
                       <PlanCell
+                        config={config}
                         company={company}
                         productType={group.productType}
                         speed={option.value}
@@ -112,7 +116,7 @@ export default function InternetPriceTable({ company }: { company: Company }) {
                           rowSpan={BUNDLE_TYPE_OPTIONS.length}
                           className="px-2 py-4 text-base"
                         >
-                          {formatGiftRange(getGiftRange(company, group.productType, option.value))}
+                          {formatGiftRange(getGiftRange(config, company, group.productType, option.value))}
                         </td>
                       )}
                     </Fragment>

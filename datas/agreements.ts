@@ -6,7 +6,7 @@ export interface AgreementSection {
 }
 
 export interface AgreementContent {
-    id: "collection" | "thirdParty" | "marketing";
+    id: "collection" | "thirdParty";
     modalTitle: string;
     sections: AgreementSection[];
 }
@@ -62,30 +62,6 @@ export const AGREEMENT_CONTENTS: Record<AgreementContent["id"], AgreementContent
                 title: "동의 거부 권리 및 불이익",
                 body: [
                     "이용자는 개인정보 제3자 제공 동의를 거부할 권리가 있습니다. 다만 동의하지 않을 경우 통신사 확인이 필요한 맞춤 혜택 상담이 제한될 수 있습니다.",
-                ],
-            },
-        ],
-    },
-    marketing: {
-        id: "marketing",
-        modalTitle: "마케팅 정보 수신 동의",
-        sections: [
-            {
-                title: "수집 및 이용 목적",
-                body: ["결합 할인, 이벤트, 신규 상품 등 혜택 정보를 문자(SMS) 및 전화로 안내하기 위해 이용합니다."],
-            },
-            {
-                title: "수집 항목",
-                body: [["휴대폰 번호"]],
-            },
-            {
-                title: "보유 및 이용 기간",
-                body: ["수신 동의일로부터 동의 철회 시까지 보관하며, 철회 시 지체 없이 파기합니다."],
-            },
-            {
-                title: "동의 거부 권리 및 불이익",
-                body: [
-                    "본 동의는 선택 사항으로, 동의하지 않아도 상담 신청에는 제한이 없습니다. 동의 이후에도 회사에 연락하여 언제든지 수신을 거부할 수 있습니다.",
                 ],
             },
         ],

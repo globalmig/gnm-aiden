@@ -14,6 +14,7 @@ import {
   type Company,
   type GiftRange,
   type InternetPlan,
+  type InternetPricingConfig,
   type ProductType,
   type Speed,
 } from "@/datas/internetPricing";
@@ -82,6 +83,7 @@ function StepCard({ step, title, children }: { step: string; title: string; chil
 }
 
 export default function PriceCalculatorSection({
+  config,
   company,
   productType,
   bundleType,
@@ -99,6 +101,7 @@ export default function PriceCalculatorSection({
   mobilePlan,
   children,
 }: {
+  config: InternetPricingConfig;
   company: Company;
   productType: ProductType;
   bundleType: BundleType;
@@ -189,7 +192,7 @@ export default function PriceCalculatorSection({
         <StepCard step="STEP 03" title="인터넷 속도">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {SPEED_OPTIONS.map((option) => {
-              const price = getLowestPrice(getPlans(company, productType, option.value, bundleType));
+              const price = getLowestPrice(getPlans(config, company, productType, option.value, bundleType));
               const available = price !== undefined;
               const isSelected = speed === option.value;
               return (

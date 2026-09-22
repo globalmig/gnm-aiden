@@ -226,6 +226,14 @@ button {
     @apply bg-white/10 font-semibold text-white;
   }
 
+  .admin-nav-sublink {
+    @apply block px-3 py-2 text-sm text-gray-400 transition-colors hover:text-white;
+  }
+
+  .admin-nav-sublink-active {
+    @apply font-semibold text-white;
+  }
+
   .table-scroll {
     @apply overflow-x-auto;
     padding-bottom: 8px;

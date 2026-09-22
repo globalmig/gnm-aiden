@@ -1,13 +1,17 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "../ui/Toast";
+import ImageDropUploader from "./ImageDropUploader";
+import SpecFieldsForm from "./SpecFieldsForm";
 import { useCreate } from "@/hooks/useCreate";
 import { useUpdate } from "@/hooks/useUpdate";
+import type { CategoryDef } from "@/datas/productCategories";
 import type { Product, ProductInput } from "@/types/product";
 
 interface ProductFormOwnProps {
+    category: CategoryDef;
     editId?: string;
     initialData?: Product;
 }
@@ -19,28 +23,33 @@ function toTextarea(value: string[] | Record<string, unknown> | unknown[]) {
     return JSON.stringify(value, null, 2);
 }
 
-export default function ProductForm({ editId, initialData }: ProductFormOwnProps = {}) {
+function toStructuredSpecs(specs: Record<string, unknown> | undefined): Record<string, string> {
+    if (!specs) return {};
+    return Object.fromEntries(Object.entries(specs).map(([key, value]) => [key, String(value ?? "")]));
+}
+
+export default function ProductForm({ category, editId, initialData }: ProductFormOwnProps) {
     const isEditMode = !!editId;
     const router = useRouter();
+    const usesStructuredSpecs = category.specSections.length > 0;
 
-    const [category, setCategory] = useState<"internet" | "tv">(initialData?.category ?? "internet");
     const [name, setName] = useState(initialData?.name ?? "");
     const [brand, setBrand] = useState(initialData?.brand ?? "");
     const [price, setPrice] = useState(initialData ? String(initialData.price) : "");
     const [discountInfo, setDiscountInfo] = useState(initialData?.discount_info ?? "");
     const [isPopular, setIsPopular] = useState(initialData?.is_popular ?? false);
     const [popularOrder, setPopularOrder] = useState(initialData?.popular_order?.toString() ?? "");
-    const [imagesText, setImagesText] = useState(initialData ? toTextarea(initialData.images) : "");
-    const [specsText, setSpecsText] = useState(initialData ? toTextarea(initialData.specs) : "{}");
-    const [priceOptionsText, setPriceOptionsText] = useState(
-        initialData ? toTextarea(initialData.price_options) : "[]"
-    );
+    const [images, setImages] = useState<string[]>(initialData?.images ?? []);
+    const [specs, setSpecs] = useState<Record<string, string>>(() => toStructuredSpecs(initialData?.specs));
+    const [specsJsonText, setSpecsJsonText] = useState(initialData ? toTextarea(initialData.specs) : "");
 
     const [vaild, setVaild] = useState<string | null>(null);
 
     const { create, loading: createLoading } = useCreate<ProductInput>("/api/products");
     const { update, loading: updateLoading } = useUpdate<ProductInput>("/api/products");
     const loading = isEditMode ? updateLoading : createLoading;
+
+    const priceLabel = useMemo(() => category.priceLabel, [category]);
 
     const onSubmitForm = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,43 +58,41 @@ export default function ProductForm({ editId, initialData }: ProductFormOwnProps
         if (!name.trim()) { setVaild("상품명을 입력해주세요."); return; }
         if (!price.trim() || Number.isNaN(Number(price))) { setVaild("가격을 숫자로 입력해주세요."); return; }
 
-        let specs: Record<string, unknown>;
-        let priceOptions: unknown[];
-        try {
-            specs = specsText.trim() ? JSON.parse(specsText) : {};
-        } catch {
-            setVaild("스펙(specs)이 올바른 JSON 형식이 아닙니다.");
-            return;
-        }
-        try {
-            priceOptions = priceOptionsText.trim() ? JSON.parse(priceOptionsText) : [];
-        } catch {
-            setVaild("요금 옵션(price_options)이 올바른 JSON 형식이 아닙니다.");
-            return;
+        let finalSpecs: Record<string, unknown>;
+        if (usesStructuredSpecs) {
+            finalSpecs = Object.fromEntries(Object.entries(specs).filter(([, value]) => value.trim() !== ""));
+        } else {
+            try {
+                finalSpecs = specsJsonText.trim() ? JSON.parse(specsJsonText) : {};
+            } catch {
+                setVaild("스펙(specs)이 올바른 JSON 형식이 아닙니다.");
+                return;
+            }
         }
 
         const input: ProductInput = {
-            category,
+            category: category.value,
             name: name.trim(),
             brand: brand.trim() || null,
             price: Number(price),
             discount_info: discountInfo.trim() || null,
-            images: imagesText.split("\n").map((s) => s.trim()).filter(Boolean),
-            specs,
-            price_options: priceOptions,
+            images,
+            specs: finalSpecs,
+            price_options: initialData?.price_options ?? [],
             is_popular: isPopular,
             popular_order: popularOrder.trim() ? Number(popularOrder) : null,
+            sort_order: initialData?.sort_order ?? 0,
         };
 
         const result = isEditMode ? await update(editId!, input) : await create(input);
         if (result) {
-            router.push("/admin/products");
+            router.push(`/admin/products/${category.value}`);
         } else {
             setVaild("저장에 실패했습니다.");
         }
     }, [
-        loading, name, price, specsText, priceOptionsText, category, brand, discountInfo,
-        imagesText, isPopular, popularOrder, isEditMode, editId, update, create, router,
+        loading, name, price, specs, specsJsonText, usesStructuredSpecs, category, brand,
+        discountInfo, images, isPopular, popularOrder, isEditMode, editId, initialData, update, create, router,
     ]);
 
     return (
@@ -94,19 +101,12 @@ export default function ProductForm({ editId, initialData }: ProductFormOwnProps
                 <div className="card space-y-5 p-6 md:p-8">
                     <div className="grid grid-cols-1 gap-5 pc:grid-cols-2">
                         <div className="flex flex-col gap-1.5">
-                            <label className="form-label">카테고리 <span className="text-red-400">*</span></label>
-                            <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value as "internet" | "tv")}
-                                className="form-input"
-                            >
-                                <option value="internet">인터넷</option>
-                                <option value="tv">TV</option>
-                            </select>
+                            <label className="form-label">카테고리</label>
+                            <p className="form-input flex items-center bg-surface text-muted">{category.label}</p>
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                            <label className="form-label">상품명 <span className="text-red-400">*</span></label>
+                            <label className="form-label">상품명 <span className="text-primary">*</span></label>
                             <input
                                 type="text"
                                 value={name}
@@ -122,13 +122,13 @@ export default function ProductForm({ editId, initialData }: ProductFormOwnProps
                                 type="text"
                                 value={brand}
                                 onChange={(e) => setBrand(e.target.value)}
-                                placeholder="TV 브랜드 (인터넷 요금제는 비워두세요)"
+                                placeholder={`${category.label} 브랜드`}
                                 className="form-input"
                             />
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                            <label className="form-label">가격 (월 요금) <span className="text-red-400">*</span></label>
+                            <label className="form-label">{priceLabel} <span className="text-primary">*</span></label>
                             <input
                                 type="number"
                                 value={price}
@@ -171,40 +171,22 @@ export default function ProductForm({ editId, initialData }: ProductFormOwnProps
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="form-label">이미지 URL (줄바꿈으로 구분)</label>
-                        <textarea
-                            value={imagesText}
-                            onChange={(e) => setImagesText(e.target.value)}
-                            rows={3}
-                            placeholder={"https://.../image1.png\nhttps://.../image2.png"}
-                            className="form-input font-mono text-sm"
-                        />
+                        <label className="form-label">이미지</label>
+                        <ImageDropUploader images={images} onChange={setImages} />
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="form-label">상세 스펙 (JSON)</label>
-                        <textarea
-                            value={specsText}
-                            onChange={(e) => setSpecsText(e.target.value)}
-                            rows={5}
-                            placeholder={'{ "speed": "500M", "resolution": "4K" }'}
-                            className="form-input font-mono text-sm"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label className="form-label">조건별 요금 옵션 (JSON 배열, 주로 TV)</label>
-                        <textarea
-                            value={priceOptionsText}
-                            onChange={(e) => setPriceOptionsText(e.target.value)}
-                            rows={4}
-                            placeholder={'[{ "contract_period": "36개월", "monthly_fee": 29000 }]'}
-                            className="form-input font-mono text-sm"
+                    <div className="border-t border-gray-100 pt-5">
+                        <SpecFieldsForm
+                            category={category}
+                            specs={specs}
+                            onChange={setSpecs}
+                            fallbackJsonText={specsJsonText}
+                            onFallbackJsonChange={setSpecsJsonText}
                         />
                     </div>
 
                     <div className="flex justify-end gap-3 border-t border-gray-100 pt-2">
-                        <Link href="/admin/products" className="admin-btn-ghost">
+                        <Link href={`/admin/products/${category.value}`} className="admin-btn-ghost">
                             취소
                         </Link>
                         <button type="submit" disabled={loading} className="admin-btn-primary">

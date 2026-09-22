@@ -215,7 +215,7 @@ export default function AdminInquiriesPage() {
                                             {totalCount - (currentPage - 1) * ITEMS_PER_PAGE - i}
                                         </td>
                                         <td className="px-4 py-4 text-center text-muted">
-                                            {inquiry.source === "landing" ? "랜딩" : "홈페이지"}
+                                            {inquiry.source === "landing" ? "랜딩" : "공식홈"}
                                         </td>
                                         <td className="px-4 py-4 text-center font-medium text-title">
                                             {inquiry.name}

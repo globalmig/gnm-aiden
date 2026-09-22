@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/apiAuth";
+import { isProductCategory } from "@/datas/productCategories";
 
 export async function GET(request: NextRequest) {
     const category = request.nextUrl.searchParams.get("category");
 
-    let query = supabaseAdmin.from("products").select("*").order("created_at", { ascending: false });
-    if (category) query = query.eq("category", category);
+    let query = supabaseAdmin.from("products").select("*");
+    if (category) {
+        query = query.eq("category", category).order("sort_order", { ascending: true });
+    } else {
+        query = query.order("created_at", { ascending: false });
+    }
 
     const { data, error } = await query;
 
@@ -26,7 +31,7 @@ export async function POST(request: NextRequest) {
     const name = String(body.name ?? "").trim();
     const price = Number(body.price);
 
-    if (!["internet", "tv"].includes(category)) {
+    if (!isProductCategory(category)) {
         return NextResponse.json({ error: "카테고리를 선택해주세요." }, { status: 400 });
     }
     if (!name) {
@@ -35,6 +40,11 @@ export async function POST(request: NextRequest) {
     if (!Number.isFinite(price)) {
         return NextResponse.json({ error: "가격을 입력해주세요." }, { status: 400 });
     }
+
+    const { count } = await supabaseAdmin
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("category", category);
 
     const { data, error } = await supabaseAdmin
         .from("products")
@@ -49,6 +59,7 @@ export async function POST(request: NextRequest) {
             price_options: body.price_options ?? [],
             is_popular: !!body.is_popular,
             popular_order: body.popular_order ?? null,
+            sort_order: count ?? 0,
         })
         .select()
         .single();

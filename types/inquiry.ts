@@ -11,7 +11,6 @@ export interface LandingLeadFields {
     agree_collection: boolean | null;
     agree_third_party: boolean | null;
     agree_age: boolean | null;
-    agree_marketing: boolean | null;
 }
 
 export interface Inquiry extends LandingLeadFields {

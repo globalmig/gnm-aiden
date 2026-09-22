@@ -1,5 +1,6 @@
 "use client";
 import { ADMIN_CATEGORY } from "@/datas/categories";
+import { PRODUCT_CATEGORIES } from "@/datas/productCategories";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,6 +10,16 @@ function ProductsIcon() {
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M8.5 1.5H2.5C1.94772 1.5 1.5 1.94772 1.5 2.5V8.5L8.79289 15.7929C9.18342 16.1834 9.81658 16.1834 10.2071 15.7929L15.2929 10.7071C15.6834 10.3166 15.6834 9.68342 15.2929 9.29289L8.5 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             <circle cx="5" cy="5" r="1" fill="currentColor" />
+        </svg>
+    );
+}
+
+// 인터넷 요금 관리 아이콘 (원화)
+function InternetPricingIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M6 5.5h2.5a1.5 1.5 0 0 1 0 3H6m0 0h3M6 8.5h3M7 5.5v6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }
@@ -44,6 +55,7 @@ function GuidesIcon() {
 
 const ADMIN_NAV_ICONS: { [key: string]: () => React.ReactElement } = {
     products: ProductsIcon,
+    "internet-pricing": InternetPricingIcon,
     notices: NoticesIcon,
     inquiries: InquiriesIcon,
     guides: GuidesIcon,
@@ -61,6 +73,7 @@ export default function SideMenu() {
                         const href = `/admin/${item.url}`;
                         const active = pathname === href || pathname.startsWith(`${href}/`);
                         const Icon = ADMIN_NAV_ICONS[item.url];
+
                         return (
                             <li key={item.url}>
                                 <Link
@@ -70,6 +83,25 @@ export default function SideMenu() {
                                     {Icon && <Icon />}
                                     {item.name}
                                 </Link>
+
+                                {item.url === "products" && active && (
+                                    <ul className="border-l border-white/10 py-1 pl-9">
+                                        {PRODUCT_CATEGORIES.map((category) => {
+                                            const subHref = `/admin/products/${category.value}`;
+                                            const subActive = pathname.startsWith(subHref);
+                                            return (
+                                                <li key={category.value}>
+                                                    <Link
+                                                        href={subHref}
+                                                        className={`admin-nav-sublink ${subActive ? "admin-nav-sublink-active" : ""}`}
+                                                    >
+                                                        {category.label}
+                                                    </Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
                             </li>
                         );
                     })}

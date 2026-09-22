@@ -18,7 +18,6 @@ const INFO_ROWS: { label: string; value: string; href?: string }[] = [
 const FOOTER_LINKS: { label: string; agreementId: AgreementContent["id"] }[] = [
   { label: "개인정보처리방침", agreementId: "collection" },
   { label: "서비스 이용약관", agreementId: "thirdParty" },
-  { label: "마케팅 정보 수신 동의", agreementId: "marketing" },
 ];
 
 export default function Footer() {

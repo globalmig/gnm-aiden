@@ -38,7 +38,7 @@ export interface InternetPlan {
   price: number;
 }
 
-type PlanKey = `${Company}|${ProductType}|${Speed}|${BundleType}`;
+export type PlanKey = `${Company}|${ProductType}|${Speed}|${BundleType}`;
 
 function planKey(company: Company, productType: ProductType, speed: Speed, bundleType: BundleType): PlanKey {
   return `${company}|${productType}|${speed}|${bundleType}`;
@@ -46,7 +46,8 @@ function planKey(company: Company, productType: ProductType, speed: Speed, bundl
 
 // 원본 txt에 존재하지 않는 조합(1G 인터넷단독, 100M 단독+휴대폰결합, SK세븐모바일 전체 등)은
 // 아예 키를 넣지 않는다 -> getPlans()가 undefined를 반환 -> UI에서 선택 비활성화 처리
-const PRICE_PLANS: Partial<Record<PlanKey, InternetPlan[]>> = {
+// 관리자 화면에서 아직 아무 값도 저장하지 않았거나 API 호출에 실패했을 때 쓰이는 기본값.
+export const PRICE_PLANS: Partial<Record<PlanKey, InternetPlan[]>> = {
   // ============== 결합 없음 (인터넷 요금표.txt) ==============
   [planKey("lgu", "internet_tv", "100", "none")]: [
     { planName: "기본", composition: "기본 100M + 기가wifi", setTop: "프리미엄 4K UHD4셋탑", price: 42900 },
@@ -198,22 +199,31 @@ const PRICE_PLANS: Partial<Record<PlanKey, InternetPlan[]>> = {
   ],
 };
 
+/** 관리자 화면(`/admin/internet-pricing`)에서 편집 가능한, 요금표 전체를 담는 구조. */
+export interface InternetPricingConfig {
+  plans: Partial<Record<PlanKey, InternetPlan[]>>;
+  giftTable: Partial<Record<GiftKey, GiftRange>>;
+  usimExtraGift: GiftRange;
+}
+
 export function getPlans(
+  config: InternetPricingConfig,
   company: Company,
   productType: ProductType,
   speed: Speed,
   bundleType: BundleType
 ): InternetPlan[] | undefined {
-  return PRICE_PLANS[planKey(company, productType, speed, bundleType)];
+  return config.plans[planKey(company, productType, speed, bundleType)];
 }
 
 export function isComboAvailable(
+  config: InternetPricingConfig,
   company: Company,
   productType: ProductType,
   speed: Speed,
   bundleType: BundleType
 ): boolean {
-  return !!getPlans(company, productType, speed, bundleType);
+  return !!getPlans(config, company, productType, speed, bundleType);
 }
 
 export function getLowestPrice(plans?: InternetPlan[]): number | undefined {
@@ -232,10 +242,10 @@ export interface GiftRange {
   max: number;
 }
 
-type GiftSpeedTier = "100" | "500_1000";
-type GiftKey = `${ProductType}|${GiftSpeedTier}`;
+export type GiftSpeedTier = "100" | "500_1000";
+export type GiftKey = `${ProductType}|${GiftSpeedTier}`;
 
-const GIFT_TABLE: Partial<Record<GiftKey, GiftRange>> = {
+export const GIFT_TABLE: Partial<Record<GiftKey, GiftRange>> = {
   "internet_tv|500_1000": { min: 40, max: 45 }, // 500M/1G 인터넷+TV
   "internet_tv|100": { min: 27, max: 35 }, // 100M 인터넷+TV
   "internet|500_1000": { min: 10, max: 15 }, // 500M 인터넷 단독
@@ -245,11 +255,22 @@ const GIFT_TABLE: Partial<Record<GiftKey, GiftRange>> = {
 /** 유심 결합개통 시 추가되는 사은품 (요금제에 따라 상이) */
 export const USIM_BUNDLE_EXTRA_GIFT: GiftRange = { min: 5, max: 15 };
 
-export function getGiftRange(company: Company, productType: ProductType, speed: Speed): GiftRange | undefined {
+export const DEFAULT_INTERNET_PRICING_CONFIG: InternetPricingConfig = {
+  plans: PRICE_PLANS,
+  giftTable: GIFT_TABLE,
+  usimExtraGift: USIM_BUNDLE_EXTRA_GIFT,
+};
+
+export function getGiftRange(
+  config: InternetPricingConfig,
+  company: Company,
+  productType: ProductType,
+  speed: Speed
+): GiftRange | undefined {
   if (!GIFT_ELIGIBLE_COMPANIES.includes(company)) return undefined;
   if (productType === "internet" && speed === "1000") return undefined; // 1G 인터넷단독 자체가 없음
   const tier: GiftSpeedTier = speed === "100" ? "100" : "500_1000";
-  return GIFT_TABLE[`${productType}|${tier}`];
+  return config.giftTable[`${productType}|${tier}`];
 }
 
 export function formatGiftRange(gift?: GiftRange): string {

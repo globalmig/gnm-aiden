@@ -1,6 +1,8 @@
+import type { ProductCategory } from "@/datas/productCategories";
+
 export interface Product {
     id: string;
-    category: "internet" | "tv";
+    category: ProductCategory;
     name: string;
     brand: string | null;
     price: number;
@@ -10,6 +12,7 @@ export interface Product {
     price_options: unknown[];
     is_popular: boolean;
     popular_order: number | null;
+    sort_order: number;
     created_at: string;
     updated_at: string;
 }
