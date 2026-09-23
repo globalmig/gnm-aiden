@@ -2,6 +2,8 @@
 // 새 가전 카테고리를 추가할 때는 이 배열에 항목 하나만 추가하면
 // 관리자 등록/수정 폼과 /admin/products/[category] 라우트가 그대로 동작한다.
 
+import { BUNDLE_TYPE_OPTIONS, COMPANY_OPTIONS, PRODUCT_TYPE_OPTIONS, SPEED_OPTIONS } from "@/datas/internetPricing";
+
 export type SpecFieldType = "text" | "select";
 
 export interface SpecFieldDef {
@@ -29,6 +31,8 @@ export interface CategoryDef {
      * 비어 있으면(스키마 미정의) 관리자 폼은 자동으로 raw JSON 입력으로 폴백한다.
      */
     specSections: SpecSectionDef[];
+    /** 상품 이미지를 직접 업로드하는 카테고리인지. false면 등록 폼에서 이미지 업로더를 숨긴다. */
+    usesImages: boolean;
 }
 
 export const PRODUCT_CATEGORIES: CategoryDef[] = [
@@ -37,6 +41,7 @@ export const PRODUCT_CATEGORIES: CategoryDef[] = [
         label: "TV",
         description: "TV 상세페이지 스펙표에 노출되는 항목을 그대로 입력합니다.",
         priceLabel: "최저 렌탈료 (월, 원)",
+        usesImages: true,
         specSections: [
             {
                 title: "기본 정보",
@@ -94,6 +99,25 @@ export const PRODUCT_CATEGORIES: CategoryDef[] = [
     },
     // 인터넷 요금은 "상품 목록"이 아니라 통신사×속도×결합유형 매트릭스라 이 CMS와 구조가 달라
     // 전용 화면(/admin/internet-pricing)에서 따로 관리한다.
+    {
+        value: "bundle",
+        label: "결합상품",
+        description: "홈 화면 '가장 많이 찾는 인기 결합 상품' 카드에 노출되는 항목을 입력합니다. 통신사/상품유형/결합유형/속도는 /internet 페이지의 조건 선택과 동일한 값으로 저장되어, '상품 보기' 클릭 시 해당 조건이 자동 선택된 상태로 연결됩니다. 통신사 로고는 선택한 통신사에 맞춰 자동으로 표시되므로 이미지를 따로 업로드하지 않아도 됩니다.",
+        priceLabel: "월 예상 요금 (원)",
+        usesImages: false,
+        specSections: [
+            {
+                title: "결합 정보",
+                fields: [
+                    { key: "company", label: "통신사", type: "select", options: COMPANY_OPTIONS.map((option) => option.label) },
+                    { key: "speed", label: "속도", type: "select", options: SPEED_OPTIONS.map((option) => option.label) },
+                    { key: "type", label: "상품 유형", type: "select", options: PRODUCT_TYPE_OPTIONS.map((option) => option.label) },
+                    { key: "bundleType", label: "결합 유형", type: "select", options: BUNDLE_TYPE_OPTIONS.map((option) => option.label) },
+                    { key: "extra", label: "부가 구성 (카드 노출용)", type: "text", placeholder: "예: 238채널 · 베이직" },
+                ],
+            },
+        ],
+    },
 ];
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]["value"];

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/apiAuth";
-import { isProductCategory } from "@/datas/productCategories";
+import { productPayloadSchema } from "@/lib/schemas/product";
 
 export async function GET(request: NextRequest) {
     const category = request.nextUrl.searchParams.get("category");
@@ -26,20 +26,11 @@ export async function POST(request: NextRequest) {
     const unauthorized = await requireAdmin(request);
     if (unauthorized) return unauthorized;
 
-    const body = await request.json();
-    const category = String(body.category ?? "");
-    const name = String(body.name ?? "").trim();
-    const price = Number(body.price);
-
-    if (!isProductCategory(category)) {
-        return NextResponse.json({ error: "카테고리를 선택해주세요." }, { status: 400 });
+    const parsed = productPayloadSchema.safeParse(await request.json());
+    if (!parsed.success) {
+        return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
-    if (!name) {
-        return NextResponse.json({ error: "상품명을 입력해주세요." }, { status: 400 });
-    }
-    if (!Number.isFinite(price)) {
-        return NextResponse.json({ error: "가격을 입력해주세요." }, { status: 400 });
-    }
+    const { category, name, brand, price, discount_info, images, specs, price_options, is_popular, popular_order } = parsed.data;
 
     const { count } = await supabaseAdmin
         .from("products")
@@ -51,14 +42,14 @@ export async function POST(request: NextRequest) {
         .insert({
             category,
             name,
-            brand: body.brand || null,
+            brand: brand || null,
             price,
-            discount_info: body.discount_info || null,
-            images: Array.isArray(body.images) ? body.images : [],
-            specs: body.specs ?? {},
-            price_options: body.price_options ?? [],
-            is_popular: !!body.is_popular,
-            popular_order: body.popular_order ?? null,
+            discount_info: discount_info || null,
+            images: images ?? [],
+            specs: specs ?? {},
+            price_options: price_options ?? [],
+            is_popular: !!is_popular,
+            popular_order: popular_order ?? null,
             sort_order: count ?? 0,
         })
         .select()

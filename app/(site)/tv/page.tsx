@@ -1,19 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CategoryBanner from "@/components/common/CategoryBanner";
-import TvProductItem, { type TvProduct } from "@/components/tv/TvProductItem";
+import TvProductItem from "@/components/tv/TvProductItem";
 import PopularTvProductItem from "@/components/tv/PopularTvProductItem";
 import TvFilterBar, { ALL_VALUE, DEFAULT_TV_FILTER, type TvFilterState } from "@/components/tv/TvFilterBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { TV_BRAND_CATEGORIES } from "@/datas/categories";
-import { parseInch } from "@/datas/tvProductDetails";
-import tvProducts from "@/datas/tvProducts.json";
+import { TV_BRAND_CATEGORIES, TV_PRODUCT_CATEGORIES } from "@/datas/categories";
+import { parseInch, specStr } from "@/datas/tvProductDetails";
+import type { Product } from "@/types/product";
 
-const PRODUCTS = tvProducts as TvProduct[];
 const PAGE_SIZE = 8;
 
+type SortOption = "new" | "popular";
+
 const BRAND_SLUG_BY_NAME = new Map(TV_BRAND_CATEGORIES.map((c) => [c.name, c.url]));
+const PRODUCT_TYPE_SLUG_BY_NAME = new Map(TV_PRODUCT_CATEGORIES.map((c) => [c.name, c.url]));
 
 function getSizeSlug(inch: number) {
   if (inch < 40) return "under-40";
@@ -24,25 +26,43 @@ function getSizeSlug(inch: number) {
   return "80-plus";
 }
 
-function getProductTypeSlug(title: string) {
-  if (title.includes("벽걸이형")) return "wall";
-  if (title.includes("스탠드형")) return "stand";
-  return null;
-}
-
-function matchesFilter(product: TvProduct, filter: TvFilterState) {
-  if (filter.brand !== ALL_VALUE && BRAND_SLUG_BY_NAME.get(product.brand) !== filter.brand) return false;
-  if (filter.productType !== ALL_VALUE && getProductTypeSlug(product.title) !== filter.productType) return false;
-  if (filter.size !== ALL_VALUE && getSizeSlug(parseInch(product.specs.screenSize)) !== filter.size) return false;
+function matchesFilter(product: Product, filter: TvFilterState) {
+  if (filter.brand !== ALL_VALUE && BRAND_SLUG_BY_NAME.get(product.brand ?? "") !== filter.brand) return false;
+  if (
+    filter.productType !== ALL_VALUE &&
+    PRODUCT_TYPE_SLUG_BY_NAME.get(specStr(product.specs, "productType")) !== filter.productType
+  )
+    return false;
+  if (filter.size !== ALL_VALUE && getSizeSlug(parseInch(specStr(product.specs, "screenSize"))) !== filter.size)
+    return false;
   return true;
 }
 
 export default function TvPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<TvFilterState>(DEFAULT_TV_FILTER);
-  const filteredProducts = useMemo(
-    () => PRODUCTS.filter((product) => matchesFilter(product, filter)),
-    [filter]
-  );
+  const [sort, setSort] = useState<SortOption>("new");
+
+  useEffect(() => {
+    fetch("/api/products?category=tv")
+      .then((res) => res.json())
+      .then((result) => setProducts(result.data ?? []))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const base = products.filter((product) => matchesFilter(product, filter));
+
+    if (sort === "popular") {
+      return base
+        .filter((product) => product.is_popular)
+        .sort((a, b) => (a.popular_order ?? Infinity) - (b.popular_order ?? Infinity));
+    }
+
+    return [...base].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [products, filter, sort]);
+
   const { visibleCount, sentinelRef } = useInfiniteScroll(filteredProducts.length, PAGE_SIZE);
   const visibleProducts = filteredProducts.slice(0, visibleCount);
 
@@ -60,12 +80,12 @@ export default function TvPage() {
             </p>
             <div className="relative">
               <select
-                defaultValue="new"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortOption)}
                 className="appearance-none rounded-full border border-black/10 bg-white py-2 pr-9 pl-3 text-base text-title outline-none"
               >
                 <option value="new">신상품순</option>
-                <option value="price-asc">낮은 가격순</option>
-                <option value="price-desc">높은 가격순</option>
+                <option value="popular">인기순</option>
               </select>
               <svg
                 viewBox="0 0 24 24"
@@ -79,7 +99,9 @@ export default function TvPage() {
             </div>
           </div>
 
-          {visibleProducts.length > 0 ? (
+          {isLoading ? (
+            <p className="py-16 text-center text-base text-muted">불러오는 중...</p>
+          ) : visibleProducts.length > 0 ? (
             <>
               <div className="mt-6 flex flex-col gap-4 pc:hidden">
                 {visibleProducts.map((product) => (

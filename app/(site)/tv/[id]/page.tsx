@@ -1,28 +1,30 @@
 "use client";
 
-import { use, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Skeleton from "@/components/ui/Skeleton";
-import { type TvProduct } from "@/components/tv/TvProductItem";
 import PopularTvProductItem from "@/components/tv/PopularTvProductItem";
 import TvSpecInfoBar from "@/components/tv/TvSpecInfoBar";
 import TvSpecTable, { type TvSpecRow } from "@/components/tv/TvSpecTable";
 import TvOrderPanel from "@/components/tv/TvOrderPanel";
 import TvMobileFixedBar from "@/components/tv/TvMobileFixedBar";
-import tvProducts from "@/datas/tvProducts.json";
+import type { Product } from "@/types/product";
 import {
   AFFILIATE_CARD_OPTIONS,
   COMMITMENT_OPTIONS,
   calcRental,
   formatWon,
   getTvProductDetail,
+  specStr,
 } from "@/datas/tvProductDetails";
-
-const PRODUCTS = tvProducts as TvProduct[];
 
 export default function TvDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const product = PRODUCTS.find((item) => item.id === id);
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [cardId, setCardId] = useState(AFFILIATE_CARD_OPTIONS[0].id);
   const [years, setYears] = useState(COMMITMENT_OPTIONS[0].years);
@@ -30,6 +32,29 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
   const popularScrollRef = useRef<HTMLDivElement>(null);
   const popularDragState = useRef({ isDragging: false, startX: 0, startScrollLeft: 0 });
   const [isPopularDragging, setIsPopularDragging] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/products/${id}`).then((res) => res.json()),
+      fetch("/api/products?category=tv").then((res) => res.json()),
+    ])
+      .then(([productResult, listResult]) => {
+        if (!productResult.data) {
+          setLoadError(true);
+          return;
+        }
+        setProduct(productResult.data);
+        const list: Product[] = listResult.data ?? [];
+        setRelatedProducts(
+          list
+            .filter((item) => item.id !== id)
+            .sort((a, b) => Number(b.is_popular) - Number(a.is_popular))
+            .slice(0, 8)
+        );
+      })
+      .catch(() => setLoadError(true))
+      .finally(() => setIsLoading(false));
+  }, [id]);
 
   const handlePopularDragStart = (event: React.MouseEvent<HTMLDivElement>) => {
     const track = popularScrollRef.current;
@@ -57,7 +82,15 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
     setIsPopularDragging(false);
   };
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <section>
+        <p className="py-24 text-center text-base text-muted">불러오는 중...</p>
+      </section>
+    );
+  }
+
+  if (loadError || !product) {
     return (
       <section>
         <div className="flex flex-col items-center gap-4 py-24 text-center">
@@ -74,17 +107,15 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
   const selectedCard = AFFILIATE_CARD_OPTIONS.find((card) => card.id === cardId) ?? AFFILIATE_CARD_OPTIONS[0];
   const { benefit, monthlyRental } = calcRental(detail.listRental, years, selectedCard.discount);
 
-  const relatedProducts = PRODUCTS.filter((item) => item.id !== product.id).slice(0, 8);
-
   const basicInfoRows: TvSpecRow[] = [
     { label: "브랜드", value: product.brand },
-    { label: "제품명", value: product.title },
-    { label: "모델명", value: product.model },
+    { label: "제품명", value: product.name },
+    { label: "모델명", value: specStr(product.specs, "model") },
     { label: "최저렌탈료", value: formatWon(detail.minRental), bold: true },
     { label: "크기(WDH)", value: detail.dimensions },
     { label: "무게(Kg)", value: detail.weight },
-    { label: "에너지 소비효율", value: product.specs.energyGrade },
-    { label: "소비전력", value: product.specs.power },
+    { label: "에너지 소비효율", value: specStr(product.specs, "energyGrade") },
+    { label: "소비전력", value: specStr(product.specs, "power") },
     { label: "출시년도", value: detail.releaseYear },
   ];
 
@@ -96,7 +127,7 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
   const displayRows: TvSpecRow[] = [
     { label: "크기(인치)", value: detail.sizeRangeLabel },
     { label: "패널타입", value: detail.panelType },
-    { label: "해상도", value: product.specs.resolution },
+    { label: "해상도", value: specStr(product.specs, "resolution") },
     { label: "화질 부가기능", value: detail.displayFeatures },
   ];
 
@@ -146,33 +177,35 @@ export default function TvDetailPage({ params }: { params: Promise<{ id: string 
             </div>
           </div>
 
-          <div className="mt-20 pc:mt-25">
-            <p className="font-bold text-title">인기 상품 추천</p>
-            <div className="relative mt-6">
-              <div
-                ref={popularScrollRef}
-                onMouseDown={handlePopularDragStart}
-                onMouseMove={handlePopularDragMove}
-                onMouseUp={handlePopularDragEnd}
-                onMouseLeave={handlePopularDragEnd}
-                className={`no-scrollbar flex gap-4 overflow-x-auto pc:gap-6 ${
-                  isPopularDragging ? "cursor-grabbing select-none" : "cursor-grab"
-                }`}
-              >
-                {relatedProducts.map((item) => (
-                  <div key={item.id} className="w-70 shrink-0 sm:w-85 pc:w-109.25">
-                    <PopularTvProductItem product={item} />
-                  </div>
-                ))}
+          {relatedProducts.length > 0 && (
+            <div className="mt-20 pc:mt-25">
+              <p className="font-bold text-title">인기 상품 추천</p>
+              <div className="relative mt-6">
+                <div
+                  ref={popularScrollRef}
+                  onMouseDown={handlePopularDragStart}
+                  onMouseMove={handlePopularDragMove}
+                  onMouseUp={handlePopularDragEnd}
+                  onMouseLeave={handlePopularDragEnd}
+                  className={`no-scrollbar flex gap-4 overflow-x-auto pc:gap-6 ${
+                    isPopularDragging ? "cursor-grabbing select-none" : "cursor-grab"
+                  }`}
+                >
+                  {relatedProducts.map((item) => (
+                    <div key={item.id} className="w-70 shrink-0 sm:w-85 pc:w-109.25">
+                      <PopularTvProductItem product={item} />
+                    </div>
+                  ))}
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-white to-transparent pc:w-32" />
               </div>
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-white to-transparent pc:w-32" />
+              <div className="mt-8 text-center">
+                <Link href="/tv" className="btn-ghost">
+                  인기 상품 더보기
+                </Link>
+              </div>
             </div>
-            <div className="mt-8 text-center">
-              <Link href="/tv" className="btn-ghost">
-                인기 상품 더보기
-              </Link>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 

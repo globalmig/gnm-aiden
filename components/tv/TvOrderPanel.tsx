@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { TvProduct } from "@/components/tv/TvProductItem";
+import type { Product } from "@/types/product";
 import {
   AFFILIATE_CARD_OPTIONS,
   COMMITMENT_OPTIONS,
   MANAGEMENT_LABEL,
   formatWon,
+  specStr,
 } from "@/datas/tvProductDetails";
 
 function ChevronIcon({ className }: { className?: string }) {
@@ -99,7 +100,7 @@ export default function TvOrderPanel({
   benefit,
   monthlyRental,
 }: {
-  product: TvProduct;
+  product: Product;
   cardId: string;
   years: number;
   onCardChange: (cardId: string) => void;
@@ -110,9 +111,9 @@ export default function TvOrderPanel({
   return (
     <aside className="rounded-2xl bg-sky-light p-6 pc:sticky pc:top-24 pc:py-10">
       <p className="text-sm text-muted">
-        {product.brand} ({product.model})
+        {product.brand} ({specStr(product.specs, "model")})
       </p>
-      <h3 className="mt-1 font-bold text-title">{product.title}</h3>
+      <h3 className="mt-1 font-bold text-title">{product.name}</h3>
 
       <div className="mt-6">
         <p className="text-sm font-bold text-title">제휴카드</p>

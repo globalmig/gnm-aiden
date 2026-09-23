@@ -4,10 +4,8 @@ import "slick-carousel/slick/slick.css";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import Slider from "react-slick";
-import TvProductItem, { type TvProduct } from "@/components/tv/TvProductItem";
-import tvProducts from "@/datas/tvProducts.json";
-
-const PRODUCTS = tvProducts as TvProduct[];
+import TvProductItem from "@/components/tv/TvProductItem";
+import type { Product } from "@/types/product";
 
 function getSlidesToShow(width: number) {
   if (width <= 640) return 1;
@@ -18,6 +16,13 @@ function getSlidesToShow(width: number) {
 export default function TvProductCarousel() {
   const sliderRef = useRef<Slider>(null);
   const [slidesToShow, setSlidesToShow] = useState(4);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products?category=tv")
+      .then((res) => res.json())
+      .then((result) => setProducts(result.data ?? []));
+  }, []);
 
   useEffect(() => {
     const updateSlidesToShow = () => setSlidesToShow(getSlidesToShow(window.innerWidth));
@@ -26,10 +31,12 @@ export default function TvProductCarousel() {
     return () => window.removeEventListener("resize", updateSlidesToShow);
   }, []);
 
+  if (products.length === 0) return null;
+
   const settings = {
     dots: false,
     arrows: false,
-    infinite: PRODUCTS.length > 4,
+    infinite: products.length > 4,
     speed: 500,
     slidesToShow,
     slidesToScroll: 1,
@@ -54,7 +61,7 @@ export default function TvProductCarousel() {
           </button>
 
           <Slider ref={sliderRef} {...settings}>
-            {PRODUCTS.map((product) => (
+            {products.map((product) => (
               <div key={product.id} className="px-2.5 pb-1">
                 <TvProductItem product={product} />
               </div>

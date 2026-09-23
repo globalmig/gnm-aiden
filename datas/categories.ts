@@ -7,7 +7,6 @@ export const USER_CATEGORY: { [key: string]: { title: string; categories?: { nam
             { name: "LG U+", url: "lgu" },
             { name: "LG헬로비전", url: "lg-hellovision" },
             { name: "KT스카이라이프", url: "kt-skylife" },
-            { name: "SK세븐모바일", url: "sk-7mobile" },
         ],
     },
     tv: {

@@ -15,7 +15,6 @@ export default function InquiryWritePage() {
     const [phone, setPhone] = useState("");
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [isSecret, setIsSecret] = useState(true);
     const [password, setPassword] = useState("");
     const [vaild, setVaild] = useState<string | null>(null);
 
@@ -34,7 +33,7 @@ export default function InquiryWritePage() {
         if (!/^[0-9]{10,11}$/.test(phone)) { setVaild("연락처는 숫자 10~11자리로 입력해주세요."); return; }
         if (!title.trim()) { setVaild("제목을 입력해주세요."); return; }
         if (!content.trim()) { setVaild("문의 내용을 입력해주세요."); return; }
-        if (isSecret && !password.trim()) { setVaild("비밀글 비밀번호를 입력해주세요."); return; }
+        if (!password.trim()) { setVaild("비밀글 비밀번호를 입력해주세요."); return; }
 
         const result = await create({
             source: "main",
@@ -42,8 +41,8 @@ export default function InquiryWritePage() {
             phone: phone.trim(),
             title: title.trim(),
             content: content.trim(),
-            is_secret: isSecret,
-            password_hash: isSecret ? password.trim() : null,
+            is_secret: true,
+            password: password.trim(),
         });
 
         if (result) {
@@ -51,7 +50,7 @@ export default function InquiryWritePage() {
         } else {
             setVaild("문의 등록에 실패했습니다.");
         }
-    }, [loading, name, phone, title, content, isSecret, password, create, router]);
+    }, [loading, name, phone, title, content, password, create, router]);
 
 
 
@@ -60,38 +59,38 @@ export default function InquiryWritePage() {
             <CategoryBanner title="질문 & 답변" />
             <section>
                 <div>
-                    <Link href="/inquiry" className="text-sm text-muted hover:text-primary">
-                        ← 목록으로
+                    <Link
+                        href="/inquiry"
+                        className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-primary"
+                    >
+                        <span aria-hidden>←</span> 목록으로
                     </Link>
 
                     <form onSubmit={onSubmitForm} className="mt-6 w-full">
-                        <div className="flex items-start gap-2">
-                            <span className="text-lg font-bold text-primary pc:text-2xl">Q</span>
-                            <label htmlFor="inquiry-title" className="sr-only">제목</label>
-                            <input
-                                type="text"
-                                id="inquiry-title"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="제목을 입력해주세요."
-                                className="form-input flex-1 text-lg font-bold text-title pc:text-2xl"
-                            />
-                        </div>
+                        <div className="border-t border-[#eee]">
+                            <FormRow label="제목" htmlFor="inquiry-title" required>
+                                <input
+                                    type="text"
+                                    id="inquiry-title"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="제목을 입력해주세요."
+                                    className="table-input"
+                                />
+                            </FormRow>
 
-                        <div className="mt-3 flex flex-col gap-3 pc:flex-row">
-                            <div className="pc:w-40">
-                                <label htmlFor="inquiry-name" className="sr-only">이름</label>
+                            <FormRow label="이름" htmlFor="inquiry-name" required>
                                 <input
                                     type="text"
                                     id="inquiry-name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="이름"
-                                    className="form-input w-full"
+                                    placeholder="이름을 입력해주세요."
+                                    className="table-input"
                                 />
-                            </div>
-                            <div className="pc:w-56">
-                                <label htmlFor="inquiry-phone" className="sr-only">연락처</label>
+                            </FormRow>
+
+                            <FormRow label="연락처" htmlFor="inquiry-phone" required>
                                 <input
                                     type="tel"
                                     id="inquiry-phone"
@@ -100,50 +99,43 @@ export default function InquiryWritePage() {
                                     onChange={onChangePhone}
                                     maxLength={11}
                                     placeholder="연락처 (숫자만 입력)"
-                                    className="form-input w-full"
+                                    className="table-input"
                                 />
-                            </div>
-                        </div>
+                            </FormRow>
 
-                        <div className="mt-4 border-t border-table-border" />
-
-                        <div className="py-8 min-h-50">
-                            <label htmlFor="inquiry-content" className="sr-only">문의 내용</label>
-                            <textarea
-                                id="inquiry-content"
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                rows={8}
-                                placeholder="문의하실 내용을 입력해주세요."
-                                className="form-input w-full resize-none"
-                            />
-                        </div>
-
-                        <div className="border-t border-table-border" />
-
-                        <div className="mt-6 flex flex-col gap-3">
-                            <label className="flex items-center gap-2 text-base text-muted">
-                                <input
-                                    type="checkbox"
-                                    checked={isSecret}
-                                    onChange={(e) => setIsSecret(e.target.checked)}
+                            <FormRow label="문의 내용" htmlFor="inquiry-content" required align="start">
+                                <textarea
+                                    id="inquiry-content"
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
+                                    rows={7}
+                                    placeholder="문의하실 내용을 입력해주세요."
+                                    className="table-input resize-none py-3"
                                 />
-                                비밀글로 작성 (작성자와 관리자만 내용을 확인할 수 있어요)
-                            </label>
+                            </FormRow>
 
-                            {isSecret && (
-                                <div>
-                                    <label htmlFor="inquiry-password" className="sr-only">비밀글 비밀번호</label>
+                            <FormRow label="비밀글">
+                                <label className="flex items-center gap-2 px-4 py-2.5 text-sm text-body">
                                     <input
-                                        type="password"
-                                        id="inquiry-password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="글 확인 시 사용할 비밀번호를 입력해주세요."
-                                        className="form-input w-full pc:w-100"
+                                        type="checkbox"
+                                        checked
+                                        disabled
+                                        className="size-4 accent-primary"
                                     />
-                                </div>
-                            )}
+                                    작성자와 관리자만 내용을 확인할 수 있어요.
+                                </label>
+                            </FormRow>
+
+                            <FormRow label="비밀번호" htmlFor="inquiry-password" required>
+                                <input
+                                    type="password"
+                                    id="inquiry-password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="글 확인 시 사용할 비밀번호를 입력해주세요."
+                                    className="table-input"
+                                />
+                            </FormRow>
                         </div>
 
                         <div className="mt-8 flex justify-end gap-3">
@@ -160,5 +152,36 @@ export default function InquiryWritePage() {
 
             <Toast vaild={vaild} setVaild={setVaild} />
         </>
+    );
+}
+
+function FormRow({
+    label,
+    htmlFor,
+    required,
+    align = "center",
+    children,
+}: {
+    label: string;
+    htmlFor?: string;
+    required?: boolean;
+    align?: "center" | "start";
+    children: React.ReactNode;
+}) {
+    const isStart = align === "start";
+
+    return (
+        <div className="flex border-b border-table-border">
+            <label
+                htmlFor={htmlFor}
+                className={`flex w-24 shrink-0 justify-start bg-sky-light px-2 text-left text-sm font-semibold text-title pc:w-40 pc:text-base ${
+                    isStart ? "items-start pt-3" : "items-center"
+                }`}
+            >
+                {label}
+                {required && <span className="ml-0.5 text-primary">*</span>}
+            </label>
+            <div className={`flex flex-1 ${isStart ? "items-start" : "items-center"}`}>{children}</div>
+        </div>
     );
 }

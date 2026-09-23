@@ -34,5 +34,6 @@ export interface InquiryInput extends Partial<LandingLeadFields> {
     title: string | null;
     content: string;
     is_secret: boolean;
-    password_hash: string | null;
+    /** 평문 비밀번호. 서버(`/api/inquiries` POST)에서 해싱 후 `password_hash`로 저장한다. */
+    password: string | null;
 }

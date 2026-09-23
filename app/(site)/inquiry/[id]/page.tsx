@@ -30,10 +30,6 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
     const [deletePassword, setDeletePassword] = useState("");
     const [deleting, setDeleting] = useState(false);
 
-    // 관리자는 비밀글이어도 원본 내용을 그대로 받고, 그 외에는 비밀번호 확인 전까지
-    // 내용/답변이 내려오지 않는 공개용 엔드포인트를 사용한다.
-    // 세션 확인과 상세 조회를 순차로 묶어서, 두 요청이 따로 실행되며 서로의 결과를
-    // 덮어쓰는 경합(늦게 끝난 공개 조회가 관리자용 전체 데이터를 지워버리는 문제)을 막는다.
     useEffect(() => {
         let cancelled = false;
         setIsLoading(true);
@@ -103,7 +99,8 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
 
             try {
                 setReplyLoading(true);
-                const response = await fetch(`/api/inquiries/${id}`, {
+                // 관리자 답변(role: "admin")은 서버에서 requireAdmin으로 검증하므로 인증 헤더가 필요하다.
+                const response = await (isAdmin ? authFetch : fetch)(`/api/inquiries/${id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

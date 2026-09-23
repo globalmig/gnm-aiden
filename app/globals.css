@@ -193,6 +193,10 @@ button {
     @apply w-full rounded-lg border border-black/10 bg-white px-4 py-2.5 text-base text-title outline-none transition-colors focus:border-primary;
   }
 
+  .table-input {
+    @apply w-full bg-transparent px-4 py-2.5 text-sm text-title outline-none pc:text-base pc:py-4;
+  }
+
   .black-bg {
     @apply fixed inset-0 z-40 bg-black/50;
   }

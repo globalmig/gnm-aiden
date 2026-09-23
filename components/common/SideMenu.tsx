@@ -1,6 +1,7 @@
 "use client";
 import { ADMIN_CATEGORY } from "@/datas/categories";
 import { PRODUCT_CATEGORIES } from "@/datas/productCategories";
+import { GUIDE_CATEGORIES } from "@/datas/guideCategories";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -88,6 +89,25 @@ export default function SideMenu() {
                                     <ul className="border-l border-white/10 py-1 pl-9">
                                         {PRODUCT_CATEGORIES.map((category) => {
                                             const subHref = `/admin/products/${category.value}`;
+                                            const subActive = pathname.startsWith(subHref);
+                                            return (
+                                                <li key={category.value}>
+                                                    <Link
+                                                        href={subHref}
+                                                        className={`admin-nav-sublink ${subActive ? "admin-nav-sublink-active" : ""}`}
+                                                    >
+                                                        {category.label}
+                                                    </Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+
+                                {item.url === "guides" && active && (
+                                    <ul className="border-l border-white/10 py-1 pl-9">
+                                        {GUIDE_CATEGORIES.map((category) => {
+                                            const subHref = `/admin/guides/${category.value}`;
                                             const subActive = pathname.startsWith(subHref);
                                             return (
                                                 <li key={category.value}>

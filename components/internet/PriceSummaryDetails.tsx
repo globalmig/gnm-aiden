@@ -62,7 +62,7 @@ export default function PriceSummaryDetails({
         </div>
       </div>
 
-      <div className="mt-7 space-y-2 rounded-xl bg-surface p-4 text-base">
+      <div className="mt-7 space-y-2 rounded-xl bg-white p-4 text-base">
         {nonePlan !== undefined && (
           <p className="flex items-center justify-between text-muted">
             기본요금 (미결합)

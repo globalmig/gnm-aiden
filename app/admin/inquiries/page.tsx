@@ -206,54 +206,67 @@ export default function AdminInquiriesPage() {
                             )}
                             {!isLoading &&
                                 !isError &&
-                                currentItems.map((inquiry, i) => (
-                                    <tr
-                                        key={inquiry.id}
-                                        className="border-b border-table-border text-base text-body hover:bg-surface"
-                                    >
-                                        <td className="px-4 py-4 text-center text-muted">
-                                            {totalCount - (currentPage - 1) * ITEMS_PER_PAGE - i}
-                                        </td>
-                                        <td className="px-4 py-4 text-center text-muted">
-                                            {inquiry.source === "landing" ? "랜딩" : "공식홈"}
-                                        </td>
-                                        <td className="px-4 py-4 text-center font-medium text-title">
-                                            {inquiry.name}
-                                        </td>
-                                        <td className="max-w-0 px-4 py-4">
-                                            <Link
-                                                href={`/inquiry/${inquiry.id}`}
-                                                className="flex min-w-0 items-center gap-1.5 text-title hover:text-primary"
-                                            >
-                                                <span className="truncate">{inquiry.title || inquiry.content}</span>
-                                                {(isToday(inquiry.created_at) || inquiry.status === "대기") && (
-                                                    <Image
-                                                        src="/icons/icon-new-contents.svg"
-                                                        alt="신규 문의"
-                                                        width={17}
-                                                        height={17}
-                                                        className="shrink-0"
-                                                    />
-                                                )}
-                                            </Link>
-                                        </td>
-                                        <td className="px-4 py-4 text-center text-muted">{inquiry.phone}</td>
-                                        <td className="px-4 py-4 text-center text-muted">
-                                            {formatDate(inquiry.created_at)}
-                                        </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <span
-                                                className={
-                                                    inquiry.status === "답변완료"
-                                                        ? "inline-flex rounded-full bg-sky-light px-3 py-1 text-xs font-semibold text-primary"
-                                                        : "inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600"
-                                                }
-                                            >
-                                                {inquiry.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                currentItems.map((inquiry, i) => {
+                                    // 관리자가 한 번 답변한 뒤 문의자가 댓글로 추가 문의를 남기면 상태가 다시 "대기"로
+                                    // 바뀌는데, 신규 미답변 문의와 똑같이 보여서 놓치기 쉬우므로 별도 뱃지로 구분한다.
+                                    const hasAdminReply = inquiry.replies.some((reply) => reply.author === "관리자");
+                                    const lastReply = inquiry.replies[inquiry.replies.length - 1];
+                                    const isFollowUp = hasAdminReply && !!lastReply && lastReply.author !== "관리자";
+
+                                    return (
+                                        <tr
+                                            key={inquiry.id}
+                                            className="border-b border-table-border text-base text-body hover:bg-surface"
+                                        >
+                                            <td className="px-4 py-4 text-center text-muted">
+                                                {totalCount - (currentPage - 1) * ITEMS_PER_PAGE - i}
+                                            </td>
+                                            <td className="px-4 py-4 text-center text-muted">
+                                                {inquiry.source === "landing" ? "랜딩" : "공식홈"}
+                                            </td>
+                                            <td className="px-4 py-4 text-center font-medium text-title">
+                                                {inquiry.name}
+                                            </td>
+                                            <td className="max-w-0 px-4 py-4">
+                                                <Link
+                                                    href={`/admin/inquiries/${inquiry.id}`}
+                                                    className="flex min-w-0 items-center gap-1.5 text-title hover:text-primary"
+                                                >
+                                                    <span className="truncate">{inquiry.title || inquiry.content}</span>
+                                                    {(isToday(inquiry.created_at) || inquiry.status === "대기") && (
+                                                        <Image
+                                                            src="/icons/icon-new-contents.svg"
+                                                            alt="신규 문의"
+                                                            width={17}
+                                                            height={17}
+                                                            className="shrink-0"
+                                                        />
+                                                    )}
+                                                    {isFollowUp && (
+                                                        <span className="inline-flex shrink-0 items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">
+                                                            추가 문의
+                                                        </span>
+                                                    )}
+                                                </Link>
+                                            </td>
+                                            <td className="px-4 py-4 text-center text-muted">{inquiry.phone}</td>
+                                            <td className="px-4 py-4 text-center text-muted">
+                                                {formatDate(inquiry.created_at)}
+                                            </td>
+                                            <td className="px-4 py-4 text-center">
+                                                <span
+                                                    className={
+                                                        inquiry.status === "답변완료"
+                                                            ? "inline-flex rounded-full bg-sky-light px-3 py-1 text-xs font-semibold text-primary"
+                                                            : "inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600"
+                                                    }
+                                                >
+                                                    {inquiry.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                         </tbody>
                     </table>
                 </div>

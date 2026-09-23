@@ -1,20 +1,20 @@
 import Image from "next/image";
-import type { TvProduct } from "@/components/tv/TvProductItem";
-import type { TvProductDetail } from "@/datas/tvProductDetails";
+import { specStr, type TvProductDetail } from "@/datas/tvProductDetails";
+import type { Product } from "@/types/product";
 
 export default function TvSpecInfoBar({
   product,
   detail,
 }: {
-  product: TvProduct;
+  product: Product;
   detail: TvProductDetail;
 }) {
   const items = [
     { icon: "/icons/icon-렌탈료.svg", label: "렌탈료", value: detail.rentalBucketLabel },
-    { icon: "/icons/icon-tv종류.svg", label: "TV종류", value: product.specs.tvType },
-    { icon: "/icons/icon-화면크기.svg", label: "TV 화면크기", value: product.specs.screenSize },
+    { icon: "/icons/icon-tv종류.svg", label: "TV종류", value: specStr(product.specs, "tvType") },
+    { icon: "/icons/icon-화면크기.svg", label: "TV 화면크기", value: specStr(product.specs, "screenSize") },
     { icon: "/icons/icon-편의기능.svg", label: "편의기능 개수", value: `${detail.featureCount}개` },
-    { icon: "/icons/icon-해상도.svg", label: "해상도", value: product.specs.resolution },
+    { icon: "/icons/icon-해상도.svg", label: "해상도", value: specStr(product.specs, "resolution") },
     { icon: "/icons/icon-사운드.svg", label: "사운드 채널/출력", value: `${detail.soundChannel}/${detail.soundOutput}` },
   ];
 

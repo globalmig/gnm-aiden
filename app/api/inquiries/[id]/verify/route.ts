@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { verifyPassword } from "@/lib/password";
 
 // 비밀글 비밀번호 확인: 일치하면 잠금 해제된 전체 내용을 내려준다.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         return NextResponse.json({ error: "문의를 찾을 수 없습니다." }, { status: 404 });
     }
 
-    if (!data.is_secret || password !== data.password_hash) {
+    if (!data.is_secret || !verifyPassword(password, data.password_hash)) {
         return NextResponse.json({ error: "비밀번호가 일치하지 않습니다." }, { status: 401 });
     }
 

@@ -49,7 +49,6 @@ const COMPANY_LOGOS: Record<Company, { src: string; width: number; height: numbe
   sk: { src: "/images/logo_sk.png", width: 70, height: 55 },
   lgu: { src: "/images/logo-uplus.png", width: 94, height: 43 },
   "kt-skylife": { src: "/images/logo_skylife.png", width: 88, height: 64 },
-  "sk-7mobile": { src: "/images/logo-7mobile.png", width: 108, height: 23 },
   "lg-hellovision": { src: "/images/logo-lg-hellowVision.png", width: 97, height: 49 },
 };
 

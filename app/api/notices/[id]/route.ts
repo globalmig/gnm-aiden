@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/apiAuth";
+import { noticeSchema } from "@/lib/schemas/notice";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -19,17 +20,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (unauthorized) return unauthorized;
 
     const { id } = await params;
-    const body = await request.json();
-    const title = String(body.title ?? "").trim();
-    const content = String(body.content ?? "").trim();
-    const is_pinned = Boolean(body.is_pinned);
-
-    if (!title) {
-        return NextResponse.json({ error: "제목을 입력해주세요." }, { status: 400 });
+    const parsed = noticeSchema.safeParse(await request.json());
+    if (!parsed.success) {
+        return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
-    if (!content) {
-        return NextResponse.json({ error: "내용을 입력해주세요." }, { status: 400 });
-    }
+    const { title, content, is_pinned } = parsed.data;
 
     const { data, error } = await supabaseAdmin
         .from("notices")

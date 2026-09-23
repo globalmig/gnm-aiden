@@ -6,7 +6,6 @@ const TELECOM_LINKS: { key: string; name: string; logo: string; width: number; h
   { key: "sk", name: "SK", logo: "/images/logo_sk.png", width: 70, height: 55 },
   { key: "lgu", name: "LG U+", logo: "/images/logo-uplus.png", width: 94, height: 43 },
   { key: "kt-skylife", name: "KT스카이라이프", logo: "/images/logo_skylife.png", width: 88, height: 64 },
-  { key: "sk-7mobile", name: "SK세븐모바일", logo: "/images/logo-7mobile.png", width: 108, height: 23 },
   { key: "lg-hellovision", name: "LG헬로비전", logo: "/images/logo-lg-hellowVision.png", width: 97, height: 49 },
 ];
 

@@ -9,6 +9,7 @@ function getTopLevelHref(key: string) {
 }
 function getSubMenuHref(key: string, subUrl: string) {
   if (key === "tv") return `/tv?list=${subUrl}`;
+  if (key === "internet") return `/internet?company=${subUrl}`;
   return `/${subUrl}`;
 }
 

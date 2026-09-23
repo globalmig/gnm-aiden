@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/apiAuth";
+import { verifyPassword } from "@/lib/password";
 
 // 비밀번호 확인 없이 원본 내용을 그대로 내려주므로 관리자만 접근할 수 있다.
 // 비회원은 /api/inquiries/[id]/public 을 사용한다.
@@ -53,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
         if (role === "customer" && current.is_secret) {
             const password = String(body.password ?? "").trim();
-            if (!password || password !== current.password_hash) {
+            if (!verifyPassword(password, current.password_hash)) {
                 return NextResponse.json({ error: "비밀번호가 일치하지 않습니다." }, { status: 401 });
             }
         }
@@ -114,7 +115,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ error: "문의를 찾을 수 없습니다." }, { status: 404 });
         }
 
-        if (!current.is_secret || !password || password !== current.password_hash) {
+        if (!current.is_secret || !verifyPassword(password, current.password_hash)) {
             return NextResponse.json({ error: "비밀번호가 일치하지 않습니다." }, { status: 401 });
         }
     } else {

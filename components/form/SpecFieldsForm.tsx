@@ -1,6 +1,7 @@
 "use client";
 
 import type { CategoryDef } from "@/datas/productCategories";
+import FormRow from "./FormRow";
 
 interface SpecFieldsFormProps {
     category: CategoryDef;
@@ -9,6 +10,10 @@ interface SpecFieldsFormProps {
     /** specSections가 비어 있는 카테고리(스키마 미정의)를 위한 raw JSON 폴백 입력 */
     fallbackJsonText: string;
     onFallbackJsonChange: (text: string) => void;
+    /** 구조화 스펙 필드별 검증 에러 메시지 (key: field.key) */
+    errors?: Record<string, string>;
+    /** raw JSON 폴백 입력의 검증 에러 메시지 */
+    fallbackError?: string;
 }
 
 export default function SpecFieldsForm({
@@ -17,6 +22,8 @@ export default function SpecFieldsForm({
     onChange,
     fallbackJsonText,
     onFallbackJsonChange,
+    errors = {},
+    fallbackError,
 }: SpecFieldsFormProps) {
     if (category.specSections.length === 0) {
         return (
@@ -32,6 +39,7 @@ export default function SpecFieldsForm({
                     placeholder={'{ "speed": "500M", "resolution": "4K" }'}
                     className="form-input font-mono text-sm"
                 />
+                {fallbackError && <p className="text-sm text-red-500">{fallbackError}</p>}
             </div>
         );
     }
@@ -42,38 +50,43 @@ export default function SpecFieldsForm({
 
     return (
         <div className="flex flex-col gap-6">
-            {category.specSections.map((section) => (
+            {category.specSections.map((section) => {
+                const isOptionalSection = section.title === "편의기능" || section.title.startsWith("분류");
+                return (
                 <div key={section.title} className="flex flex-col gap-3">
                     <p className="text-sm font-bold text-title">{section.title}</p>
-                    <div className="grid grid-cols-1 gap-4 pc:grid-cols-2">
+                    <div className="overflow-hidden rounded-xl border border-gray-100">
                         {section.fields.map((field) => (
-                            <div key={field.key} className="flex flex-col gap-1.5">
-                                <label className="form-label text-sm">{field.label}</label>
-                                {field.type === "select" ? (
-                                    <select
-                                        value={specs[field.key] ?? ""}
-                                        onChange={(e) => setField(field.key, e.target.value)}
-                                        className="form-input"
-                                    >
-                                        <option value="">선택 안 함</option>
-                                        {field.options?.map((option) => (
-                                            <option key={option} value={option}>{option}</option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <input
-                                        type="text"
-                                        value={specs[field.key] ?? ""}
-                                        onChange={(e) => setField(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        className="form-input"
-                                    />
-                                )}
-                            </div>
+                            <FormRow key={field.key} label={field.label} required={!isOptionalSection}>
+                                <div className="flex w-full flex-col gap-1">
+                                    {field.type === "select" ? (
+                                        <select
+                                            value={specs[field.key] ?? ""}
+                                            onChange={(e) => setField(field.key, e.target.value)}
+                                            className="form-input"
+                                        >
+                                            <option value="">선택 안 함</option>
+                                            {field.options?.map((option) => (
+                                                <option key={option} value={option}>{option}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={specs[field.key] ?? ""}
+                                            onChange={(e) => setField(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            className="form-input"
+                                        />
+                                    )}
+                                    {errors[field.key] && <p className="text-sm text-red-500">{errors[field.key]}</p>}
+                                </div>
+                            </FormRow>
                         ))}
                     </div>
                 </div>
-            ))}
+                );
+            })}
         </div>
     );
 }

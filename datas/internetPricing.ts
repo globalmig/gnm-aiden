@@ -1,6 +1,6 @@
 // 인터넷 요금표.txt / 핸드폰까지 결합 시 요금표.txt / 사은품.txt 를 구조화한 데이터
 
-export type Company = "kt" | "sk" | "lgu" | "kt-skylife" | "lg-hellovision" | "sk-7mobile";
+export type Company = "kt" | "sk" | "lgu" | "kt-skylife" | "lg-hellovision";
 export type Speed = "100" | "500" | "1000";
 export type ProductType = "internet" | "internet_tv";
 export type BundleType = "none" | "mobile";
@@ -11,7 +11,6 @@ export const COMPANY_OPTIONS: { value: Company; label: string }[] = [
   { value: "lgu", label: "LG U+" },
   { value: "kt-skylife", label: "KT스카이라이프" },
   { value: "lg-hellovision", label: "LG헬로비전" },
-  { value: "sk-7mobile", label: "SK세븐모바일" },
 ];
 
 export const SPEED_OPTIONS: { value: Speed; label: string; recommended?: boolean }[] = [
@@ -44,7 +43,7 @@ function planKey(company: Company, productType: ProductType, speed: Speed, bundl
   return `${company}|${productType}|${speed}|${bundleType}`;
 }
 
-// 원본 txt에 존재하지 않는 조합(1G 인터넷단독, 100M 단독+휴대폰결합, SK세븐모바일 전체 등)은
+// 원본 txt에 존재하지 않는 조합(1G 인터넷단독, 100M 단독+휴대폰결합 등)은
 // 아예 키를 넣지 않는다 -> getPlans()가 undefined를 반환 -> UI에서 선택 비활성화 처리
 // 관리자 화면에서 아직 아무 값도 저장하지 않았거나 API 호출에 실패했을 때 쓰이는 기본값.
 export const PRICE_PLANS: Partial<Record<PlanKey, InternetPlan[]>> = {
@@ -233,7 +232,7 @@ export function getLowestPrice(plans?: InternetPlan[]): number | undefined {
 
 // ============== 사은품 (사은품.txt) ==============
 // SK/LG/KT 셋 모두 동일 범위이며 통신사 구분 없이 상품유형·속도로만 결정된다.
-// KT스카이라이프 / LG헬로비전 / SK세븐모바일은 자료가 없어 해당 통신사 선택 시 섹션 자체를 숨긴다.
+// KT스카이라이프 / LG헬로비전은 자료가 없어 해당 통신사 선택 시 섹션 자체를 숨긴다.
 
 export const GIFT_ELIGIBLE_COMPANIES: Company[] = ["kt", "sk", "lgu"];
 

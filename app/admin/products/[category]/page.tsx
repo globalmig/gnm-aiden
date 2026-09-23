@@ -4,10 +4,13 @@ import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SortableProductList from "@/components/admin/SortableProductList";
+import Pagination from "@/components/ui/Pagination";
 import { useDelete } from "@/hooks/useDelete";
 import { authFetch } from "@/lib/apiFetch";
 import { getCategoryDef } from "@/datas/productCategories";
 import type { Product } from "@/types/product";
+
+const PAGE_SIZE = 10;
 
 export default function AdminCategoryProductsPage({ params }: { params: Promise<{ category: string }> }) {
     const { category } = use(params);
@@ -17,6 +20,7 @@ export default function AdminCategoryProductsPage({ params }: { params: Promise<
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
 
     const fetchProducts = useCallback(async () => {
         setIsLoading(true);
@@ -46,15 +50,20 @@ export default function AdminCategoryProductsPage({ params }: { params: Promise<
 
     const handleReorder = async (orderedIds: string[]) => {
         if (!products) return;
-        const reordered = orderedIds
+        // orderedIds는 현재 페이지에 보이는 항목들만의 새 순서이므로, 전체 목록에서 해당 항목들의
+        // 자리에만 새 순서를 끼워 넣어 전체 순서를 재구성한다.
+        const idSet = new Set(orderedIds);
+        const reorderedSlice = orderedIds
             .map((id) => products.find((product) => product.id === id))
             .filter((product): product is Product => !!product);
+        let cursor = 0;
+        const reordered = products.map((product) => (idSet.has(product.id) ? reorderedSlice[cursor++] : product));
         setProducts(reordered);
 
         const response = await authFetch("/api/products/reorder", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ category, ids: orderedIds }),
+            body: JSON.stringify({ category, ids: reordered.map((product) => product.id) }),
         });
         if (!response.ok) fetchProducts();
     };
@@ -64,6 +73,7 @@ export default function AdminCategoryProductsPage({ params }: { params: Promise<
     const keyword = search.trim().toLowerCase();
     const filteredProducts = products?.filter((product) => product.name.toLowerCase().includes(keyword)) ?? null;
     const isFiltering = keyword.length > 0;
+    const pagedProducts = filteredProducts?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) ?? null;
 
     return (
         <div className="card p-6 md:p-8">
@@ -80,7 +90,10 @@ export default function AdminCategoryProductsPage({ params }: { params: Promise<
                 <input
                     type="search"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
+                    }}
                     placeholder="상품명 검색"
                     className="form-input max-w-80"
                 />
@@ -96,7 +109,7 @@ export default function AdminCategoryProductsPage({ params }: { params: Promise<
                     </p>
                 )}
 
-                {filteredProducts && filteredProducts.length > 0 && (
+                {filteredProducts && filteredProducts.length > 0 && pagedProducts && (
                     <>
                         <p className="mb-3 text-xs text-muted">
                             {isFiltering
@@ -104,12 +117,21 @@ export default function AdminCategoryProductsPage({ params }: { params: Promise<
                                 : "드래그해서 노출 순서를 바꿀 수 있습니다."}
                         </p>
                         <SortableProductList
-                            products={filteredProducts}
+                            products={pagedProducts}
                             categoryValue={category}
+                            usesImages={categoryDef.usesImages}
                             sortable={!isFiltering}
                             onReorder={handleReorder}
                             onDelete={handleDelete}
                         />
+                        {filteredProducts.length > PAGE_SIZE && (
+                            <Pagination
+                                key={search}
+                                totalCount={filteredProducts.length}
+                                itemsPerPage={PAGE_SIZE}
+                                onPageChange={setPage}
+                            />
+                        )}
                     </>
                 )}
             </div>

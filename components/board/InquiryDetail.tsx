@@ -28,7 +28,7 @@ export default function InquiryDetail({
   commentForm,
 }: InquiryDetailProps) {
   return (
-    <div className="w-full rounded-2xl border border-black/5 bg-white p-6 shadow-card pc:p-8">
+    <div className="w-full">
       <div className="flex items-start gap-2">
         <span className="text-lg font-bold text-primary pc:text-2xl">Q</span>
         <h3 className="text-lg font-bold text-title pc:text-2xl">{title}</h3>

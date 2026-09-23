@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/apiAuth";
+import { hashPassword } from "@/lib/password";
 
 // 전체 문의 목록(이름/연락처 포함)은 관리자만 조회할 수 있다.
 export async function GET(request: NextRequest) {
@@ -25,6 +26,12 @@ export async function POST(request: NextRequest) {
     const phone = String(body.phone ?? "").trim();
     const content = String(body.content ?? "").trim();
     const source = body.source === "landing" ? "landing" : "main";
+    const isSecret = !!body.is_secret;
+    const password = String(body.password ?? "").trim();
+
+    if (isSecret && !password) {
+        return NextResponse.json({ error: "비밀글 비밀번호를 입력해주세요." }, { status: 400 });
+    }
 
     if (!name) {
         return NextResponse.json({ error: "이름을 입력해주세요." }, { status: 400 });
@@ -56,8 +63,8 @@ export async function POST(request: NextRequest) {
             phone,
             title: body.title || null,
             content,
-            is_secret: !!body.is_secret,
-            password_hash: body.password_hash || null,
+            is_secret: isSecret,
+            password_hash: isSecret ? hashPassword(password) : null,
             ...landingFields,
         })
         .select()

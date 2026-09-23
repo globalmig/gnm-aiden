@@ -1,12 +1,16 @@
 "use client";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "../ui/Toast";
 import ImageDropUploader from "./ImageDropUploader";
 import SpecFieldsForm from "./SpecFieldsForm";
+import FormRow from "./FormRow";
 import { useCreate } from "@/hooks/useCreate";
 import { useUpdate } from "@/hooks/useUpdate";
+import { buildProductFormSchema, type ProductFormValues } from "@/lib/schemas/product";
 import type { CategoryDef } from "@/datas/productCategories";
 import type { Product, ProductInput } from "@/types/product";
 
@@ -32,18 +36,30 @@ export default function ProductForm({ category, editId, initialData }: ProductFo
     const isEditMode = !!editId;
     const router = useRouter();
     const usesStructuredSpecs = category.specSections.length > 0;
-
-    const [name, setName] = useState(initialData?.name ?? "");
-    const [brand, setBrand] = useState(initialData?.brand ?? "");
-    const [price, setPrice] = useState(initialData ? String(initialData.price) : "");
-    const [discountInfo, setDiscountInfo] = useState(initialData?.discount_info ?? "");
-    const [isPopular, setIsPopular] = useState(initialData?.is_popular ?? false);
-    const [popularOrder, setPopularOrder] = useState(initialData?.popular_order?.toString() ?? "");
-    const [images, setImages] = useState<string[]>(initialData?.images ?? []);
-    const [specs, setSpecs] = useState<Record<string, string>>(() => toStructuredSpecs(initialData?.specs));
-    const [specsJsonText, setSpecsJsonText] = useState(initialData ? toTextarea(initialData.specs) : "");
-
     const [vaild, setVaild] = useState<string | null>(null);
+
+    const productSchema = useMemo(() => buildProductFormSchema(category), [category]);
+
+    const {
+        register,
+        handleSubmit,
+        control,
+        setValue,
+        formState: { errors },
+    } = useForm<ProductFormValues>({
+        resolver: zodResolver(productSchema),
+        defaultValues: {
+            name: initialData?.name ?? "",
+            brand: initialData?.brand ?? "",
+            price: initialData ? String(initialData.price) : "",
+            discount_info: initialData?.discount_info ?? "",
+            is_popular: initialData?.is_popular ?? false,
+            popular_order: initialData?.popular_order?.toString() ?? "",
+            images: initialData?.images ?? [],
+            specs: toStructuredSpecs(initialData?.specs),
+            specsJsonText: initialData ? toTextarea(initialData.specs) : "",
+        },
+    });
 
     const { create, loading: createLoading } = useCreate<ProductInput>("/api/products");
     const { update, loading: updateLoading } = useUpdate<ProductInput>("/api/products");
@@ -51,36 +67,36 @@ export default function ProductForm({ category, editId, initialData }: ProductFo
 
     const priceLabel = useMemo(() => category.priceLabel, [category]);
 
-    const onSubmitForm = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (loading) return;
+    const images = useWatch({ control, name: "images" });
+    const specs = useWatch({ control, name: "specs" });
+    const specsJsonText = useWatch({ control, name: "specsJsonText" });
 
-        if (!name.trim()) { setVaild("상품명을 입력해주세요."); return; }
-        if (!price.trim() || Number.isNaN(Number(price))) { setVaild("가격을 숫자로 입력해주세요."); return; }
-
-        let finalSpecs: Record<string, unknown>;
-        if (usesStructuredSpecs) {
-            finalSpecs = Object.fromEntries(Object.entries(specs).filter(([, value]) => value.trim() !== ""));
-        } else {
-            try {
-                finalSpecs = specsJsonText.trim() ? JSON.parse(specsJsonText) : {};
-            } catch {
-                setVaild("스펙(specs)이 올바른 JSON 형식이 아닙니다.");
-                return;
+    const specErrors = useMemo(() => {
+        const result: Record<string, string> = {};
+        for (const [key, err] of Object.entries(errors.specs ?? {})) {
+            if (err && typeof err === "object" && "message" in err && typeof err.message === "string") {
+                result[key] = err.message;
             }
         }
+        return result;
+    }, [errors.specs]);
+
+    const onSubmit = handleSubmit(async (values) => {
+        const finalSpecs: Record<string, unknown> = usesStructuredSpecs
+            ? Object.fromEntries(Object.entries(values.specs).filter(([, value]) => value.trim() !== ""))
+            : (values.specsJsonText.trim() ? JSON.parse(values.specsJsonText) : {});
 
         const input: ProductInput = {
             category: category.value,
-            name: name.trim(),
-            brand: brand.trim() || null,
-            price: Number(price),
-            discount_info: discountInfo.trim() || null,
-            images,
+            name: values.name,
+            brand: values.brand || null,
+            price: Number(values.price),
+            discount_info: values.discount_info || null,
+            images: values.images,
             specs: finalSpecs,
             price_options: initialData?.price_options ?? [],
-            is_popular: isPopular,
-            popular_order: popularOrder.trim() ? Number(popularOrder) : null,
+            is_popular: values.is_popular,
+            popular_order: values.popular_order.trim() ? Number(values.popular_order) : null,
             sort_order: initialData?.sort_order ?? 0,
         };
 
@@ -90,98 +106,104 @@ export default function ProductForm({ category, editId, initialData }: ProductFo
         } else {
             setVaild("저장에 실패했습니다.");
         }
-    }, [
-        loading, name, price, specs, specsJsonText, usesStructuredSpecs, category, brand,
-        discountInfo, images, isPopular, popularOrder, isEditMode, editId, initialData, update, create, router,
-    ]);
+    });
 
     return (
         <>
-            <form onSubmit={onSubmitForm}>
-                <div className="card space-y-5 p-6 md:p-8">
-                    <div className="grid grid-cols-1 gap-5 pc:grid-cols-2">
-                        <div className="flex flex-col gap-1.5">
-                            <label className="form-label">카테고리</label>
+            <form onSubmit={onSubmit}>
+                <div className="card space-y-6 p-6 md:p-8">
+                    <div className="overflow-hidden rounded-xl border border-gray-100">
+                        <FormRow label="카테고리" required>
                             <p className="form-input flex items-center bg-surface text-muted">{category.label}</p>
-                        </div>
+                        </FormRow>
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="form-label">상품명 <span className="text-primary">*</span></label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="상품명을 입력해주세요."
-                                className="form-input"
-                            />
-                        </div>
+                        <FormRow label="상품명" required>
+                            <div className="flex w-full flex-col gap-1">
+                                <input
+                                    type="text"
+                                    placeholder="상품명을 입력해주세요."
+                                    className="form-input"
+                                    {...register("name")}
+                                />
+                                {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+                            </div>
+                        </FormRow>
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="form-label">브랜드</label>
-                            <input
-                                type="text"
-                                value={brand}
-                                onChange={(e) => setBrand(e.target.value)}
-                                placeholder={`${category.label} 브랜드`}
-                                className="form-input"
-                            />
-                        </div>
+                        <FormRow label="브랜드" required>
+                            <div className="flex w-full flex-col gap-1">
+                                <input
+                                    type="text"
+                                    placeholder={`${category.label} 브랜드`}
+                                    className="form-input"
+                                    {...register("brand")}
+                                />
+                                {errors.brand && <p className="text-sm text-red-500">{errors.brand.message}</p>}
+                            </div>
+                        </FormRow>
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="form-label">{priceLabel} <span className="text-primary">*</span></label>
-                            <input
-                                type="number"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                placeholder="36000"
-                                className="form-input"
-                            />
-                        </div>
+                        <FormRow label={priceLabel} required>
+                            <div className="flex w-full flex-col gap-1">
+                                <input
+                                    type="number"
+                                    placeholder="36000"
+                                    className="form-input"
+                                    {...register("price")}
+                                />
+                                {errors.price && <p className="text-sm text-red-500">{errors.price.message}</p>}
+                            </div>
+                        </FormRow>
 
-                        <div className="flex flex-col gap-1.5 pc:col-span-2">
-                            <label className="form-label">할인 안내</label>
-                            <input
-                                type="text"
-                                value={discountInfo}
-                                onChange={(e) => setDiscountInfo(e.target.value)}
-                                placeholder="할인 안내 문구"
-                                className="form-input"
-                            />
-                        </div>
+                        <FormRow label="할인 안내" required>
+                            <div className="flex w-full flex-col gap-1">
+                                <input
+                                    type="text"
+                                    placeholder="할인 안내 문구"
+                                    className="form-input"
+                                    {...register("discount_info")}
+                                />
+                                {errors.discount_info && <p className="text-sm text-red-500">{errors.discount_info.message}</p>}
+                            </div>
+                        </FormRow>
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="form-label">인기상품 순서</label>
-                            <input
-                                type="number"
-                                value={popularOrder}
-                                onChange={(e) => setPopularOrder(e.target.value)}
-                                placeholder="1"
-                                className="form-input"
-                            />
-                        </div>
+                        <FormRow label="인기상품 노출">
+                            <label className="flex items-center gap-2">
+                                <input type="checkbox" {...register("is_popular")} />
+                                <span className="text-base text-body">인기상품으로 노출</span>
+                            </label>
+                        </FormRow>
 
-                        <label className="flex items-center gap-2 pc:mt-7">
-                            <input
-                                type="checkbox"
-                                checked={isPopular}
-                                onChange={(e) => setIsPopular(e.target.checked)}
-                            />
-                            <span className="text-base text-body">인기상품으로 노출</span>
-                        </label>
+                        <FormRow label="인기상품 순서">
+                            <div className="flex w-full flex-col gap-1">
+                                <input
+                                    type="number"
+                                    placeholder="1"
+                                    className="form-input"
+                                    {...register("popular_order")}
+                                />
+                                {errors.popular_order && <p className="text-sm text-red-500">{errors.popular_order.message}</p>}
+                            </div>
+                        </FormRow>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="form-label">이미지</label>
-                        <ImageDropUploader images={images} onChange={setImages} />
-                    </div>
+                    {category.usesImages && (
+                        <div className="flex flex-col gap-1.5">
+                            <label className="form-label">이미지</label>
+                            <ImageDropUploader
+                                images={images}
+                                onChange={(next) => setValue("images", next, { shouldValidate: true, shouldDirty: true })}
+                            />
+                        </div>
+                    )}
 
                     <div className="border-t border-gray-100 pt-5">
                         <SpecFieldsForm
                             category={category}
                             specs={specs}
-                            onChange={setSpecs}
+                            onChange={(next) => setValue("specs", next, { shouldValidate: true, shouldDirty: true })}
                             fallbackJsonText={specsJsonText}
-                            onFallbackJsonChange={setSpecsJsonText}
+                            onFallbackJsonChange={(text) => setValue("specsJsonText", text, { shouldValidate: true, shouldDirty: true })}
+                            errors={specErrors}
+                            fallbackError={errors.specsJsonText?.message}
                         />
                     </div>
 

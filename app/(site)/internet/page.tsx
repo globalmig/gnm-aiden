@@ -7,8 +7,10 @@ import { useSearchParams } from "next/navigation";
 import InternetPriceTable from "@/components/internet/InternetPriceTable";
 import PriceCalculatorSection, { type TvChannel } from "@/components/internet/PriceCalculatorSection";
 import {
+  BUNDLE_TYPE_OPTIONS,
   COMPANY_OPTIONS,
   DEFAULT_INTERNET_PRICING_CONFIG,
+  PRODUCT_TYPE_OPTIONS,
   SPEED_OPTIONS,
   getGiftRange,
   getLowestPrice,
@@ -25,6 +27,18 @@ const KAKAO_CHANNEL_URL = "http://pf.kakao.com/_LHiAX/chat";
 
 function isCompany(value: string | null): value is Company {
   return COMPANY_OPTIONS.some((option) => option.value === value);
+}
+
+function isProductType(value: string | null): value is ProductType {
+  return PRODUCT_TYPE_OPTIONS.some((option) => option.value === value);
+}
+
+function isSpeedValue(value: string | null): value is Speed {
+  return SPEED_OPTIONS.some((option) => option.value === value);
+}
+
+function isBundleTypeValue(value: string | null): value is BundleType {
+  return BUNDLE_TYPE_OPTIONS.some((option) => option.value === value);
 }
 
 const DISCOUNT_CARDS = [
@@ -96,11 +110,14 @@ const INSTALL_GUIDE = [
 function InternetPageContent() {
   const searchParams = useSearchParams();
   const companyParam = searchParams.get("company");
+  const typeParam = searchParams.get("type");
+  const speedParam = searchParams.get("speed");
+  const bundleParam = searchParams.get("bundle");
 
   const [company, setCompany] = useState<Company>(isCompany(companyParam) ? companyParam : "kt");
-  const [productType, setProductType] = useState<ProductType>("internet");
-  const [bundleType, setBundleType] = useState<BundleType>("none");
-  const [speed, setSpeed] = useState<Speed>("500");
+  const [productType, setProductType] = useState<ProductType>(isProductType(typeParam) ? typeParam : "internet");
+  const [bundleType, setBundleType] = useState<BundleType>(isBundleTypeValue(bundleParam) ? bundleParam : "none");
+  const [speed, setSpeed] = useState<Speed>(isSpeedValue(speedParam) ? speedParam : "500");
   const [tvChannel, setTvChannel] = useState<TvChannel>("basic");
   // 기본값으로 즉시 렌더한 뒤, 관리자 화면에서 저장한 최신 요금으로 조용히 교체한다(API 실패 시에도 기본값으로 정상 동작).
   const [pricingConfig, setPricingConfig] = useState<InternetPricingConfig>(DEFAULT_INTERNET_PRICING_CONFIG);
@@ -114,13 +131,23 @@ function InternetPageContent() {
       .catch(() => {});
   }, []);
 
-  // 홈 화면 등에서 통신사 파라미터를 바꿔 재진입해도(라우터 캐시로 리마운트 없이) 선택이 동기화되도록 처리
+  // 홈 화면(인기 결합상품 카드) 등에서 조건 파라미터를 바꿔 재진입해도(라우터 캐시로 리마운트 없이)
+  // STEP1~3 선택이 자동으로 동기화되도록 처리
   useEffect(() => {
     if (isCompany(companyParam) && companyParam !== company) {
       setCompany(companyParam);
     }
+    if (isProductType(typeParam) && typeParam !== productType) {
+      setProductType(typeParam);
+    }
+    if (isBundleTypeValue(bundleParam) && bundleParam !== bundleType) {
+      setBundleType(bundleParam);
+    }
+    if (isSpeedValue(speedParam) && speedParam !== speed) {
+      setSpeed(speedParam);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyParam]);
+  }, [companyParam, typeParam, bundleParam, speedParam]);
 
   // 통신사·상품유형·결합여부를 바꿔서 현재 속도 조합에 데이터가 없어지면, 있는 속도로 자동 대체해서 보여준다
   const effectiveSpeed = isComboAvailable(pricingConfig, company, productType, speed, bundleType)

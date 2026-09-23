@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/apiAuth";
+import { productPayloadSchema } from "@/lib/schemas/product";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -19,31 +20,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (unauthorized) return unauthorized;
 
     const { id } = await params;
-    const body = await request.json();
-    const name = String(body.name ?? "").trim();
-    const price = Number(body.price);
-
-    if (!name) {
-        return NextResponse.json({ error: "상품명을 입력해주세요." }, { status: 400 });
+    const parsed = productPayloadSchema.safeParse(await request.json());
+    if (!parsed.success) {
+        return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
-    if (!Number.isFinite(price)) {
-        return NextResponse.json({ error: "가격을 입력해주세요." }, { status: 400 });
-    }
+    const { category, name, brand, price, discount_info, images, specs, price_options, is_popular, popular_order, sort_order } = parsed.data;
 
     const { data, error } = await supabaseAdmin
         .from("products")
         .update({
-            category: body.category,
+            category,
             name,
-            brand: body.brand || null,
+            brand: brand || null,
             price,
-            discount_info: body.discount_info || null,
-            images: Array.isArray(body.images) ? body.images : [],
-            specs: body.specs ?? {},
-            price_options: body.price_options ?? [],
-            is_popular: !!body.is_popular,
-            popular_order: body.popular_order ?? null,
-            ...(body.sort_order !== undefined ? { sort_order: body.sort_order } : {}),
+            discount_info: discount_info || null,
+            images: images ?? [],
+            specs: specs ?? {},
+            price_options: price_options ?? [],
+            is_popular: !!is_popular,
+            popular_order: popular_order ?? null,
+            ...(sort_order !== undefined ? { sort_order } : {}),
         })
         .eq("id", id)
         .select()
